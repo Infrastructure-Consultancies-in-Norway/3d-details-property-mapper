@@ -14,13 +14,30 @@ rules:
     name_pattern: '^Løsmasser_[12]$'
     property_sets:
       - KON_Løsmasser
+    exclude_property_sets:
+      - KON_Felles
 
   - id: reinforcement
     name_pattern: '^Armering_Rustfritt$'
     property_sets:
       - KON_Armering
 
-  - id: concrete-components
-    name_pattern: '^(Landkar|Overgangsplate)$'
+  - id: landkar
+    name_pattern: '^Landkar$'
     property_sets:
       - KON_Betong
+    values:
+      KON_Felles:
+        'KON.10 - Konstruksjonsinndeling': Underbygning
+        'KON.11 - Konstruksjonsdel': Landkar
+        'KON.13 - Elementnavn': Landkar
+
+  - id: transition-slab
+    name_pattern: '^Overgangsplate$'
+    property_sets:
+      - KON_Betong
+    values:
+      KON_Felles:
+        'KON.10 - Konstruksjonsinndeling': Underbygning
+        'KON.11 - Konstruksjonsdel': Landkar
+        'KON.13 - Elementnavn': Overgangsplate

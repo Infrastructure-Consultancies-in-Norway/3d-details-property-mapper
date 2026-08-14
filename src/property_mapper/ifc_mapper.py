@@ -6,9 +6,9 @@ from typing import Any
 import ifcopenshell
 from ifcopenshell.api.pset import add_pset, edit_pset
 
-from .catalog import CatalogPropertySet
+from .catalog import CatalogError, CatalogPropertySet
 from .config import MappingConfig
-from .rules import property_sets_for_name
+from .rules import property_sets_for_name, property_values_for_name
 from .values import canonical_datatype, create_ifc_value
 
 
@@ -20,6 +20,7 @@ class MappingError(ValueError):
 class ElementPlan:
     element: Any
     property_sets: tuple[str, ...]
+    property_values: dict[str, dict[str, object]]
 
 
 @dataclass(frozen=True)
@@ -51,7 +52,13 @@ def build_plan(model: ifcopenshell.file, config: MappingConfig) -> tuple[list[El
         if not property_sets:
             excluded += 1
             continue
-        plans.append(ElementPlan(element=element, property_sets=property_sets))
+        plans.append(
+            ElementPlan(
+                element=element,
+                property_sets=property_sets,
+                property_values=property_values_for_name(element.Name, config),
+            )
+        )
     return plans, excluded
 
 
@@ -84,11 +91,40 @@ def _preflight(
                     )
 
 
+def _validate_config_values(
+    config: MappingConfig,
+    catalog: dict[str, CatalogPropertySet],
+) -> None:
+    validation_model = ifcopenshell.file(schema="IFC2X3")
+    configured_sources = [("default_values", config.default_values)]
+    configured_sources.extend((f"rule {rule.rule_id}", rule.values) for rule in config.rules)
+
+    for source, values_by_set in configured_sources:
+        for set_name, configured_values in values_by_set.items():
+            definitions = {
+                definition.name: definition for definition in catalog[set_name].properties
+            }
+            unknown_properties = set(configured_values) - set(definitions)
+            if unknown_properties:
+                raise MappingError(
+                    f"{source} references unknown or optional properties in {set_name}: "
+                    f"{', '.join(sorted(unknown_properties))}"
+                )
+            for name, value in configured_values.items():
+                try:
+                    create_ifc_value(validation_model, definitions[name], value)
+                except (CatalogError, TypeError, ValueError) as error:
+                    raise MappingError(
+                        f"{source} value for {set_name}.{name} is invalid: {error}"
+                    ) from error
+
+
 def apply_mapping(
     model: ifcopenshell.file,
     config: MappingConfig,
     catalog: dict[str, CatalogPropertySet],
 ) -> MappingResult:
+    _validate_config_values(config, catalog)
     plans, excluded = build_plan(model, config)
     _preflight(plans, catalog)
 
@@ -106,7 +142,13 @@ def apply_mapping(
                 property_set = add_pset(model, product=plan.element, name=set_name)
                 created += 1
             properties = {
-                definition.name: create_ifc_value(model, definition)
+                definition.name: create_ifc_value(
+                    model,
+                    definition,
+                    plan.property_values.get(set_name, {}).get(
+                        definition.name, definition.value
+                    ),
+                )
                 for definition in catalog[set_name].properties
             }
             edit_pset(model, pset=property_set, properties=properties)

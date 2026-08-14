@@ -17,6 +17,8 @@ class MappingRule:
     rule_id: str
     name_pattern: re.Pattern[str]
     property_sets: tuple[str, ...]
+    exclude_property_sets: tuple[str, ...]
+    values: dict[str, dict[str, Any]]
 
 
 @dataclass(frozen=True)
@@ -24,6 +26,7 @@ class MappingConfig:
     ifc_class: str
     exclude_name_patterns: tuple[re.Pattern[str], ...]
     base_property_sets: tuple[str, ...]
+    default_values: dict[str, dict[str, Any]]
     rules: tuple[MappingRule, ...]
 
     @property
@@ -59,9 +62,26 @@ def _compile(pattern: str, field: str) -> re.Pattern[str]:
         raise ConfigError(f"Invalid regex in {field}: {error}") from error
 
 
+def _property_values(value: Any, field: str) -> dict[str, dict[str, Any]]:
+    if value is None:
+        return {}
+    sets = _require_mapping(value, field)
+    parsed: dict[str, dict[str, Any]] = {}
+    for set_name, raw_properties in sets.items():
+        if not isinstance(set_name, str) or not set_name.strip():
+            raise ConfigError(f"{field} must use non-empty property-set names")
+        properties = _require_mapping(raw_properties, f"{field}.{set_name}")
+        if not properties:
+            raise ConfigError(f"{field}.{set_name} must not be empty")
+        if any(not isinstance(name, str) or not name.strip() for name in properties):
+            raise ConfigError(f"{field}.{set_name} must use non-empty property names")
+        parsed[set_name] = dict(properties)
+    return parsed
+
+
 def parse_config(data: Any) -> MappingConfig:
     root = _require_mapping(data, "configuration")
-    allowed_root = {"version", "selection", "base_property_sets", "rules"}
+    allowed_root = {"version", "selection", "base_property_sets", "default_values", "rules"}
     unknown = set(root) - allowed_root
     if unknown:
         raise ConfigError(f"Unknown configuration fields: {', '.join(sorted(unknown))}")
@@ -81,6 +101,13 @@ def parse_config(data: Any) -> MappingConfig:
     )
 
     base_sets = _require_strings(root.get("base_property_sets"), "base_property_sets")
+    default_values = _property_values(root.get("default_values"), "default_values")
+    unknown_default_sets = set(default_values) - set(base_sets)
+    if unknown_default_sets:
+        raise ConfigError(
+            "default_values references non-base property sets: "
+            + ", ".join(sorted(unknown_default_sets))
+        )
     raw_rules = root.get("rules")
     if not isinstance(raw_rules, list):
         raise ConfigError("rules must be a list")
@@ -89,8 +116,13 @@ def parse_config(data: Any) -> MappingConfig:
     seen_ids: set[str] = set()
     for index, raw_rule in enumerate(raw_rules):
         rule = _require_mapping(raw_rule, f"rules[{index}]")
-        if set(rule) != {"id", "name_pattern", "property_sets"}:
-            raise ConfigError(f"rules[{index}] must contain id, name_pattern, and property_sets")
+        required_fields = {"id", "name_pattern", "property_sets"}
+        optional_fields = {"exclude_property_sets", "values"}
+        if not required_fields <= set(rule) or set(rule) - required_fields - optional_fields:
+            raise ConfigError(
+                f"rules[{index}] must contain id, name_pattern, and property_sets; "
+                "exclude_property_sets and values are optional"
+            )
         rule_id = rule["id"]
         pattern = rule["name_pattern"]
         if not isinstance(rule_id, str) or not rule_id.strip():
@@ -99,14 +131,34 @@ def parse_config(data: Any) -> MappingConfig:
             raise ConfigError(f"Duplicate rule id: {rule_id}")
         if not isinstance(pattern, str) or not pattern:
             raise ConfigError(f"rules[{index}].name_pattern must be a non-empty string")
+        property_sets = _require_strings(rule["property_sets"], f"rules[{index}].property_sets")
+        excluded_sets = _require_strings(
+            rule.get("exclude_property_sets", []),
+            f"rules[{index}].exclude_property_sets",
+            allow_empty=True,
+        )
+        unknown_excluded_sets = set(excluded_sets) - set(base_sets)
+        if unknown_excluded_sets:
+            raise ConfigError(
+                f"rules[{index}].exclude_property_sets references non-base property sets: "
+                + ", ".join(sorted(unknown_excluded_sets))
+            )
+        values = _property_values(rule.get("values"), f"rules[{index}].values")
+        assigned_sets = (set(base_sets) - set(excluded_sets)) | set(property_sets)
+        unknown_value_sets = set(values) - assigned_sets
+        if unknown_value_sets:
+            raise ConfigError(
+                f"rules[{index}].values references unassigned property sets: "
+                + ", ".join(sorted(unknown_value_sets))
+            )
         seen_ids.add(rule_id)
         rules.append(
             MappingRule(
                 rule_id=rule_id,
                 name_pattern=_compile(pattern, f"rules[{index}].name_pattern"),
-                property_sets=_require_strings(
-                    rule["property_sets"], f"rules[{index}].property_sets"
-                ),
+                property_sets=property_sets,
+                exclude_property_sets=tuple(dict.fromkeys(excluded_sets)),
+                values=values,
             )
         )
 
@@ -116,6 +168,7 @@ def parse_config(data: Any) -> MappingConfig:
             _compile(pattern, "selection.exclude_name_patterns") for pattern in exclusions
         ),
         base_property_sets=tuple(dict.fromkeys(base_sets)),
+        default_values=default_values,
         rules=tuple(rules),
     )
 

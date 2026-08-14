@@ -13,27 +13,39 @@ CONFIG = ROOT / "config" / "mapping.yaml"
 
 
 def _catalog_data() -> list[dict[str, object]]:
-    return [
-        {
-            "Name": name,
-            "Properties": [
-                {
-                    "PropertyName": f"{name} test",
-                    "Datatype": "IfcText",
-                    "SampleValue": "example",
-                    "RequirementColor": "Svart",
-                    "Required": True,
-                }
-            ],
-        }
-        for name in (
-            "BIM_Tverrfaglig",
-            "KON_Felles",
-            "KON_Løsmasser",
-            "KON_Armering",
-            "KON_Betong",
+    data: list[dict[str, object]] = []
+    for name in (
+        "BIM_Tverrfaglig",
+        "KON_Felles",
+        "KON_Løsmasser",
+        "KON_Armering",
+        "KON_Betong",
+    ):
+        property_names = [f"{name} test"]
+        if name == "KON_Felles":
+            property_names.extend(
+                [
+                    "KON.10 - Konstruksjonsinndeling",
+                    "KON.11 - Konstruksjonsdel",
+                    "KON.13 - Elementnavn",
+                ]
+            )
+        data.append(
+            {
+                "Name": name,
+                "Properties": [
+                    {
+                        "PropertyName": property_name,
+                        "Datatype": "IfcText",
+                        "SampleValue": "catalog example",
+                        "RequirementColor": "Svart",
+                        "Required": True,
+                    }
+                    for property_name in property_names
+                ],
+            }
         )
-    ]
+    return data
 
 
 def _assignment_count(model: ifcopenshell.file, name: str) -> int:
@@ -58,20 +70,37 @@ def test_process_real_fixture_and_rerun_idempotently(tmp_path: Path) -> None:
 
     assert first.selected_elements == 18
     assert first.excluded_elements == 1
-    assert first.created_property_sets == 42
+    assert first.created_property_sets == 39
     assert first.assignments == {
         "BIM_Tverrfaglig": 18,
-        "KON_Felles": 18,
+        "KON_Felles": 15,
         "KON_Armering": 1,
         "KON_Betong": 2,
         "KON_Løsmasser": 3,
     }
     assert len(first_model.by_type("IfcElement")) == 19
     assert _assignment_count(first_model, "BIM_Tverrfaglig") == 18
-    assert _assignment_count(first_model, "KON_Felles") == 18
+    assert _assignment_count(first_model, "KON_Felles") == 15
     assert _assignment_count(first_model, "KON_Løsmasser") == 3
     assert _assignment_count(first_model, "KON_Armering") == 1
     assert _assignment_count(first_model, "KON_Betong") == 2
+    loose_materials = [
+        element
+        for element in first_model.by_type("IfcElement")
+        if element.Name in {"Løsmasser_1", "Løsmasser_2"}
+    ]
+    assert len(loose_materials) == 3
+    assert all(not direct_property_sets(element, "KON_Felles") for element in loose_materials)
+    transition_slab = next(
+        element for element in first_model.by_type("IfcElement") if element.Name == "Overgangsplate"
+    )
+    common_properties = {
+        prop.Name: prop.NominalValue.wrappedValue
+        for prop in direct_property_sets(transition_slab, "KON_Felles")[0].HasProperties
+    }
+    assert common_properties["KON.10 - Konstruksjonsinndeling"] == "Underbygning"
+    assert common_properties["KON.11 - Konstruksjonsdel"] == "Landkar"
+    assert common_properties["KON.13 - Elementnavn"] == "Overgangsplate"
     frame = next(
         element for element in first_model.by_type("IfcElement") if element.Name == "Ramme"
     )
@@ -86,7 +115,7 @@ def test_process_real_fixture_and_rerun_idempotently(tmp_path: Path) -> None:
     second_model = ifcopenshell.open(second_output)
 
     assert second.created_property_sets == 0
-    assert second.updated_property_sets == 42
+    assert second.updated_property_sets == 39
     assert {
         (element.GlobalId, property_set.Name): property_set.GlobalId
         for element in second_model.by_type("IfcElement")

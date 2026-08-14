@@ -43,7 +43,7 @@ En enkelt fil og en annen output kan angis eksplisitt:
 Reglene ligger i `config/mapping.yaml` og matcher dekodet IFC-elementnavn med
 case-insensitive regex.
 
-Alle `IfcElement`-forekomster unntatt `Ramme` får:
+Alle `IfcElement`-forekomster unntatt `Ramme` får som utgangspunkt:
 
 - `BIM_Tverrfaglig`
 - `KON_Felles`
@@ -56,9 +56,46 @@ Følgende navn får i tillegg et fagsett:
 | `Armering_Rustfritt` | `KON_Armering` |
 | `Landkar`, `Overgangsplate` | `KON_Betong` |
 
+En regel kan fjerne et basissett med `exclude_property_sets`. Løsmasser beholder
+`BIM_Tverrfaglig`, men får `KON_Løsmasser` i stedet for `KON_Felles`:
+
+```yaml
+- id: loose-materials
+	name_pattern: '^Løsmasser_[12]$'
+	property_sets:
+		- KON_Løsmasser
+	exclude_property_sets:
+		- KON_Felles
+```
+
 Objekter som asfalt, fuktisolering, kleber og rissanvisende fuge får foreløpig
 bare de to felles settene fordi SNACKS-katalogen ikke har passende fagsett for
 disse.
+
+Verdier kan overstyres i samme konfigurasjon. `default_values` gjelder alle
+elementer som får det angitte basissettet, mens `rules[].values` bare gjelder
+elementer som matcher regelen. En regelverdi vinner over en standardverdi:
+
+```yaml
+default_values:
+	KON_Felles:
+		'KON.30 - Plasseringsprioritet': '2 - Virker for 1'
+
+rules:
+	- id: transition-slab
+		name_pattern: '^Overgangsplate$'
+		property_sets:
+			- KON_Betong
+		values:
+			KON_Felles:
+				'KON.10 - Konstruksjonsinndeling': Underbygning
+				'KON.11 - Konstruksjonsdel': Landkar
+				'KON.13 - Elementnavn': Overgangsplate
+```
+
+Egenskapssettet må være tilordnet som basissett eller av den aktuelle regelen.
+Egenskapsnavn og datatype valideres mot den låste SNACKS-katalogen før IFC-modellen
+endres. Egenskaper uten YAML-verdi bruker fortsatt katalogens fallbackverdi.
 
 ## SNACKS-katalog
 
@@ -92,7 +129,7 @@ erstatter endelig output. For eksempelmodellen forventes:
 | Egenskapssett | Antall elementer |
 | --- | ---: |
 | `BIM_Tverrfaglig` | 18 |
-| `KON_Felles` | 18 |
+| `KON_Felles` | 15 |
 | `KON_Løsmasser` | 3 |
 | `KON_Armering` | 1 |
 | `KON_Betong` | 2 |

@@ -8,6 +8,7 @@ import ifcopenshell
 from .catalog import CatalogError, CatalogProperty
 
 _NUMBER = re.compile(r"^\s*([+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+))")
+_CATALOG_VALUE = object()
 _CANONICAL_TYPES = {
     "ifctext": "IfcText",
     "ifcinteger": "IfcInteger",
@@ -38,16 +39,18 @@ def _numeric_value(value: Any, context: str) -> float:
 def create_ifc_value(
     model: ifcopenshell.file,
     property_definition: CatalogProperty,
+    value: Any = _CATALOG_VALUE,
 ) -> ifcopenshell.entity_instance:
     datatype = canonical_datatype(property_definition.datatype)
     context = property_definition.name
+    source = property_definition.value if value is _CATALOG_VALUE else value
     if datatype == "IfcText":
-        value = str(property_definition.value)
+        converted = str(source)
     elif datatype == "IfcInteger":
-        numeric = _numeric_value(property_definition.value, context)
+        numeric = _numeric_value(source, context)
         if not numeric.is_integer():
             raise CatalogError(f"{context} must be a whole number")
-        value = int(numeric)
+        converted = int(numeric)
     else:
-        value = _numeric_value(property_definition.value, context)
-    return model.create_entity(datatype, value)
+        converted = _numeric_value(source, context)
+    return model.create_entity(datatype, converted)

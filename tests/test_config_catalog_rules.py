@@ -4,7 +4,7 @@ import pytest
 
 from property_mapper.catalog import CatalogError, parse_catalog
 from property_mapper.config import ConfigError, load_config, parse_config
-from property_mapper.rules import property_sets_for_name
+from property_mapper.rules import property_sets_for_name, property_values_for_name
 
 CONFIG_PATH = Path(__file__).parents[1] / "config" / "mapping.yaml"
 
@@ -19,7 +19,10 @@ def test_mapping_for_fixture_names() -> None:
         "KON_Felles",
         "KON_Betong",
     )
-    assert property_sets_for_name("Løsmasser_2", config)[-1] == "KON_Løsmasser"
+    assert property_sets_for_name("Løsmasser_2", config) == (
+        "BIM_Tverrfaglig",
+        "KON_Løsmasser",
+    )
     assert property_sets_for_name("Armering_Rustfritt", config)[-1] == "KON_Armering"
     assert property_sets_for_name("Fuktisolering_(A3-4)", config) == (
         "BIM_Tverrfaglig",
@@ -40,6 +43,41 @@ def test_config_rejects_duplicate_rule_ids() -> None:
                 ],
             }
         )
+
+
+def test_property_values_use_rule_over_default() -> None:
+    config = parse_config(
+        {
+            "version": 1,
+            "selection": {"ifc_class": "IfcElement", "exclude_name_patterns": []},
+            "base_property_sets": ["KON_Felles"],
+            "default_values": {
+                "KON_Felles": {
+                    "KON.10 - Konstruksjonsinndeling": "Underbygning",
+                    "KON.11 - Konstruksjonsdel": "Uspesifisert",
+                }
+            },
+            "rules": [
+                {
+                    "id": "landkar",
+                    "name_pattern": "^Landkar$",
+                    "property_sets": ["KON_Betong"],
+                    "values": {
+                        "KON_Felles": {"KON.11 - Konstruksjonsdel": "Landkar"},
+                        "KON_Betong": {"Concrete property": "project value"},
+                    },
+                }
+            ],
+        }
+    )
+
+    assert property_values_for_name("Landkar", config) == {
+        "KON_Felles": {
+            "KON.10 - Konstruksjonsinndeling": "Underbygning",
+            "KON.11 - Konstruksjonsdel": "Landkar",
+        },
+        "KON_Betong": {"Concrete property": "project value"},
+    }
 
 
 def test_catalog_keeps_black_required_and_skips_gray() -> None:
