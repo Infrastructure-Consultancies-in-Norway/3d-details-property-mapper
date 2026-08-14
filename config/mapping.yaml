@@ -1,0 +1,26 @@
+version: 1
+
+selection:
+  ifc_class: IfcElement
+  exclude_name_patterns:
+    - '^Ramme$'
+
+base_property_sets:
+  - BIM_Tverrfaglig
+  - KON_Felles
+
+rules:
+  - id: loose-materials
+    name_pattern: '^Løsmasser_[12]$'
+    property_sets:
+      - KON_Løsmasser
+
+  - id: reinforcement
+    name_pattern: '^Armering_Rustfritt$'
+    property_sets:
+      - KON_Armering
+
+  - id: concrete-components
+    name_pattern: '^(Landkar|Overgangsplate)$'
+    property_sets:
+      - KON_Betong

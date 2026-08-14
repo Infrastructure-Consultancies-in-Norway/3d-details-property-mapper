@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "SNACKS IFC: Kjør",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "property_mapper.cli",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "SNACKS IFC: Dry-run",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "property_mapper.cli",
+            "args": [
+                "--dry-run"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}

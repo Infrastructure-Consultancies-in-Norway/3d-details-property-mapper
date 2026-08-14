@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "3d-details-property-mapper"
+version = "0.1.0"
+description = "Add SNACKS property sets to IFC elements."
+readme = "readme.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "ifcopenshell==0.8.5",
+    "PyYAML==6.0.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3,<9",
+    "pytest-cov>=6,<7",
+    "ruff>=0.9,<1",
+]
+
+[project.scripts]
+snacks-ifc = "property_mapper.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/property_mapper"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
