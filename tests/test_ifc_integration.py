@@ -2,9 +2,9 @@ from pathlib import Path
 
 import ifcopenshell
 
-from property_mapper.catalog import parse_catalog
-from property_mapper.config import load_config
-from property_mapper.ifc_mapper import direct_property_sets
+from property_mapper.catalog import CatalogProperty, CatalogPropertySet, parse_catalog
+from property_mapper.config import load_config, parse_config
+from property_mapper.ifc_mapper import apply_mapping, direct_property_sets
 from property_mapper.runner import process_file
 
 ROOT = Path(__file__).parents[1]
@@ -104,3 +104,59 @@ def test_process_real_fixture_and_rerun_idempotently(tmp_path: Path) -> None:
         for property_set in direct_property_sets(element, set_name)
     } == managed_ids
     assert INPUT.read_bytes() == original_bytes
+
+
+def test_apply_mapping_deletes_configured_direct_property_sets(tmp_path: Path) -> None:
+    model = ifcopenshell.file(schema="IFC4")
+    element = model.create_entity(
+        "IfcBuildingElementProxy",
+        ifcopenshell.guid.new(),
+        None,
+        "Fundament",
+        None,
+        None,
+        None,
+        None,
+        None,
+    )
+    ifcopenshell.api.pset.add_pset(model, product=element, name="Tekla Common")
+    ifcopenshell.api.pset.add_pset(model, product=element, name="Tekla Quantity")
+    config = parse_config(
+        {
+            "version": 1,
+            "models": ["Test.ifc"],
+            "selection": {"ifc_class": "IfcElement", "exclude_name_patterns": []},
+            "delete_property_sets": ["Tekla Common"],
+            "base_property_sets": ["KON_Felles"],
+            "default_values": {"KON_Felles": {"Common property": "value"}},
+            "rules": [
+                {
+                    "id": "foundation",
+                    "name_pattern": "^Fundament$",
+                    "property_sets": ["KON_Betong"],
+                    "delete_property_sets": ["Tekla Quantity"],
+                    "values": {"KON_Betong": {"Concrete property": "value"}},
+                }
+            ],
+        }
+    )
+    catalog = {
+        "KON_Felles": CatalogPropertySet(
+            "KON_Felles", (CatalogProperty("Common property", "IfcText"),)
+        ),
+        "KON_Betong": CatalogPropertySet(
+            "KON_Betong", (CatalogProperty("Concrete property", "IfcText"),)
+        ),
+    }
+
+    result = apply_mapping(model, config, catalog)
+    output_path = tmp_path / "deleted.ifc"
+    model.write(output_path)
+    reopened = ifcopenshell.open(output_path)
+    reopened_element = reopened.by_type("IfcBuildingElementProxy")[0]
+
+    assert result.deleted_property_sets == 2
+    assert direct_property_sets(reopened_element, "Tekla Common") == []
+    assert direct_property_sets(reopened_element, "Tekla Quantity") == []
+    assert len(direct_property_sets(reopened_element, "KON_Felles")) == 1
+    assert len(direct_property_sets(reopened_element, "KON_Betong")) == 1

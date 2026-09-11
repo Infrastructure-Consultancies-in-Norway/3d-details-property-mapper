@@ -36,10 +36,13 @@ def process_file(
     if dry_run:
         plans, excluded = build_plan(model, config)
         assignments: dict[str, int] = {}
+        deleted = 0
         for plan in plans:
+            for name in plan.delete_property_sets:
+                deleted += len(direct_property_sets(plan.element, name))
             for name in plan.property_sets:
                 assignments[name] = assignments.get(name, 0) + 1
-        return MappingResult(len(plans), excluded, 0, 0, 0, assignments)
+        return MappingResult(len(plans), excluded, deleted, 0, 0, 0, assignments)
 
     apply_spatial_structure(model, config)
     result = apply_mapping(model, config, catalog)

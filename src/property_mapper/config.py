@@ -18,6 +18,7 @@ class MappingRule:
     name_pattern: re.Pattern[str]
     property_sets: tuple[str, ...]
     exclude_property_sets: tuple[str, ...]
+    delete_property_sets: tuple[str, ...]
     values: dict[str, dict[str, Any]]
 
 
@@ -27,6 +28,7 @@ class MappingConfig:
     spatial_structure: dict[str, str]
     ifc_class: str
     exclude_name_patterns: tuple[re.Pattern[str], ...]
+    delete_property_sets: tuple[str, ...]
     base_property_sets: tuple[str, ...]
     default_values: dict[str, dict[str, Any]]
     rules: tuple[MappingRule, ...]
@@ -102,6 +104,7 @@ def parse_config(data: Any) -> MappingConfig:
         "models",
         "spatial_structure",
         "selection",
+        "delete_property_sets",
         "base_property_sets",
         "default_values",
         "rules",
@@ -126,6 +129,11 @@ def parse_config(data: Any) -> MappingConfig:
         "selection.exclude_name_patterns",
         allow_empty=True,
     )
+    delete_sets = _require_strings(
+        root.get("delete_property_sets", []),
+        "delete_property_sets",
+        allow_empty=True,
+    )
 
     base_sets = _require_strings(root.get("base_property_sets"), "base_property_sets")
     default_values = _property_values(root.get("default_values"), "default_values")
@@ -138,11 +146,11 @@ def parse_config(data: Any) -> MappingConfig:
     for index, raw_rule in enumerate(raw_rules):
         rule = _require_mapping(raw_rule, f"rules[{index}]")
         required_fields = {"id", "name_pattern", "property_sets"}
-        optional_fields = {"exclude_property_sets", "values"}
+        optional_fields = {"exclude_property_sets", "delete_property_sets", "values"}
         if not required_fields <= set(rule) or set(rule) - required_fields - optional_fields:
             raise ConfigError(
                 f"rules[{index}] must contain id, name_pattern, and property_sets; "
-                "exclude_property_sets and values are optional"
+                "exclude_property_sets, delete_property_sets, and values are optional"
             )
         rule_id = rule["id"]
         pattern = rule["name_pattern"]
@@ -164,6 +172,11 @@ def parse_config(data: Any) -> MappingConfig:
                 f"rules[{index}].exclude_property_sets references non-base property sets: "
                 + ", ".join(sorted(unknown_excluded_sets))
             )
+        deleted_sets = _require_strings(
+            rule.get("delete_property_sets", []),
+            f"rules[{index}].delete_property_sets",
+            allow_empty=True,
+        )
         values = _property_values(rule.get("values"), f"rules[{index}].values")
         assigned_sets = (set(base_sets) - set(excluded_sets)) | set(property_sets)
         unknown_value_sets = set(values) - assigned_sets
@@ -172,6 +185,12 @@ def parse_config(data: Any) -> MappingConfig:
                 f"rules[{index}].values references unassigned property sets: "
                 + ", ".join(sorted(unknown_value_sets))
             )
+        conflicting_sets = set(deleted_sets) & assigned_sets
+        if conflicting_sets:
+            raise ConfigError(
+                f"rules[{index}].delete_property_sets also assigns property sets: "
+                + ", ".join(sorted(conflicting_sets))
+            )
         seen_ids.add(rule_id)
         rules.append(
             MappingRule(
@@ -179,6 +198,7 @@ def parse_config(data: Any) -> MappingConfig:
                 name_pattern=_compile(pattern, f"rules[{index}].name_pattern"),
                 property_sets=property_sets,
                 exclude_property_sets=tuple(dict.fromkeys(excluded_sets)),
+                delete_property_sets=tuple(dict.fromkeys(deleted_sets)),
                 values=values,
             )
         )
@@ -186,6 +206,12 @@ def parse_config(data: Any) -> MappingConfig:
     assignable_sets = set(base_sets)
     for rule in rules:
         assignable_sets.update(rule.property_sets)
+    globally_conflicting_sets = set(delete_sets) & assignable_sets
+    if globally_conflicting_sets:
+        raise ConfigError(
+            "delete_property_sets also assigns property sets: "
+            + ", ".join(sorted(globally_conflicting_sets))
+        )
     unknown_default_sets = set(default_values) - assignable_sets
     if unknown_default_sets:
         raise ConfigError(
@@ -200,6 +226,7 @@ def parse_config(data: Any) -> MappingConfig:
         exclude_name_patterns=tuple(
             _compile(pattern, "selection.exclude_name_patterns") for pattern in exclusions
         ),
+        delete_property_sets=tuple(dict.fromkeys(delete_sets)),
         base_property_sets=tuple(dict.fromkeys(base_sets)),
         default_values=default_values,
         rules=tuple(rules),

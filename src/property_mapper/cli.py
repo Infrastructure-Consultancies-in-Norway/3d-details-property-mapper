@@ -63,7 +63,8 @@ def main() -> int:
             mode = "planned" if args.dry_run else "written"
             print(
                 f"{input_path.name}: {mode}; selected={result.selected_elements}, "
-                f"excluded={result.excluded_elements}, assignments={result.assignments}"
+                f"excluded={result.excluded_elements}, deleted={result.deleted_property_sets}, "
+                f"assignments={result.assignments}"
             )
         except Exception as error:
             failed += 1

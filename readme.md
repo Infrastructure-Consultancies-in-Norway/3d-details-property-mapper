@@ -103,6 +103,28 @@ En regel kan fjerne et basissett med `exclude_property_sets`. Løsmasser beholde
 		- KON_Felles
 ```
 
+Eksisterende direkte egenskapssett fra IFC-filen kan fjernes med
+`delete_property_sets`. På toppnivå gjelder dette alle valgte elementer, og inne
+i en regel gjelder det bare elementer som matcher regelen. Dette brukes for å
+rydde bort visningsstøy som `Tekla Common`, `Tekla Quantity`,
+`SlabBaseQuantities` og `Pset_SlabCommon` før SNACKS-settene skrives:
+
+```yaml
+delete_property_sets:
+	- Tekla Common
+	- Tekla Quantity
+	- SlabBaseQuantities
+	- Pset_SlabCommon
+
+rules:
+	- id: foundation
+		name_pattern: '^Fundament$'
+		property_sets:
+			- KON_Betong
+		delete_property_sets:
+			- Vendor_Foundation_Pset
+```
+
 Objekter som asfalt, fuktisolering, kleber og rissanvisende fuge får foreløpig
 bare de to felles settene fordi SNACKS-katalogen ikke har passende fagsett for
 disse.

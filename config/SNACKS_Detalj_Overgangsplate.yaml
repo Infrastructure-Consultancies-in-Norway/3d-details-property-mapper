@@ -15,6 +15,12 @@ selection:
     - '^Ramme$'
     - '^Gjennomsiktig$'
 
+delete_property_sets:
+  - Tekla Common
+  - Tekla Quantity
+  - SlabBaseQuantities
+  - Pset_SlabCommon
+
 base_property_sets:
   - BIM_Tverrfaglig
   - KON_Felles

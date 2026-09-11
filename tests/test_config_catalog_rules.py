@@ -6,7 +6,11 @@ import pytest
 from property_mapper.catalog import CatalogProperty, CatalogPropertySet, parse_catalog
 from property_mapper.config import ConfigError, load_config, parse_config
 from property_mapper.ifc_mapper import MappingError, apply_mapping
-from property_mapper.rules import property_sets_for_name, property_values_for_name
+from property_mapper.rules import (
+    property_sets_for_name,
+    property_sets_to_delete_for_name,
+    property_values_for_name,
+)
 
 CONFIG_PATH = Path(__file__).parents[1] / "config" / "SNACKS_Detalj_Bolter.yaml"
 
@@ -119,6 +123,70 @@ def test_default_values_can_reference_rule_property_sets() -> None:
     assert property_values_for_name("Landkar", config)["KON_Betong"] == {
         "Concrete property": "default concrete"
     }
+
+
+def test_property_sets_to_delete_for_name_uses_global_and_rule_values() -> None:
+    config = parse_config(
+        {
+            "version": 1,
+            "models": ["Test.ifc"],
+            "selection": {"ifc_class": "IfcElement", "exclude_name_patterns": ["^Skip$"]},
+            "delete_property_sets": ["Tekla Common", "Tekla Common"],
+            "base_property_sets": ["KON_Felles"],
+            "rules": [
+                {
+                    "id": "landkar",
+                    "name_pattern": "^Landkar$",
+                    "property_sets": ["KON_Betong"],
+                    "delete_property_sets": ["Tekla Quantity"],
+                }
+            ],
+        }
+    )
+
+    assert property_sets_to_delete_for_name("Landkar", config) == (
+        "Tekla Common",
+        "Tekla Quantity",
+    )
+    assert property_sets_to_delete_for_name("Skip", config) == ()
+
+
+def test_config_rejects_deleting_assigned_property_sets() -> None:
+    with pytest.raises(ConfigError, match="also assigns property sets"):
+        parse_config(
+            {
+                "version": 1,
+                "models": ["Test.ifc"],
+                "selection": {"ifc_class": "IfcElement", "exclude_name_patterns": []},
+                "base_property_sets": ["KON_Felles"],
+                "rules": [
+                    {
+                        "id": "landkar",
+                        "name_pattern": "^Landkar$",
+                        "property_sets": ["KON_Betong"],
+                        "delete_property_sets": ["KON_Betong"],
+                    }
+                ],
+            }
+        )
+
+    with pytest.raises(ConfigError, match="also assigns property sets"):
+        parse_config(
+            {
+                "version": 1,
+                "models": ["Test.ifc"],
+                "selection": {"ifc_class": "IfcElement", "exclude_name_patterns": []},
+                "delete_property_sets": ["KON_Felles"],
+                "base_property_sets": ["KON_Felles"],
+                "rules": [
+                    {
+                        "id": "landkar",
+                        "name_pattern": "^Landkar$",
+                        "property_sets": ["KON_Betong"],
+                    }
+                ],
+            }
+        )
 
 
 def test_mapping_requires_yaml_values_for_assigned_required_properties() -> None:

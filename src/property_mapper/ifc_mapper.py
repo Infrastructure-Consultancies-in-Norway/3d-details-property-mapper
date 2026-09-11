@@ -4,11 +4,15 @@ from dataclasses import dataclass
 from typing import Any
 
 import ifcopenshell
-from ifcopenshell.api.pset import add_pset, edit_pset
+from ifcopenshell.api.pset import add_pset, edit_pset, remove_pset
 
 from .catalog import CatalogError, CatalogPropertySet
 from .config import MappingConfig
-from .rules import property_sets_for_name, property_values_for_name
+from .rules import (
+    property_sets_for_name,
+    property_sets_to_delete_for_name,
+    property_values_for_name,
+)
 from .values import canonical_datatype, create_ifc_value
 
 
@@ -20,6 +24,7 @@ class MappingError(ValueError):
 class ElementPlan:
     element: Any
     property_sets: tuple[str, ...]
+    delete_property_sets: tuple[str, ...]
     property_values: dict[str, dict[str, object]]
 
 
@@ -27,6 +32,7 @@ class ElementPlan:
 class MappingResult:
     selected_elements: int
     excluded_elements: int
+    deleted_property_sets: int
     created_property_sets: int
     updated_property_sets: int
     written_properties: int
@@ -56,6 +62,7 @@ def build_plan(model: ifcopenshell.file, config: MappingConfig) -> tuple[list[El
             ElementPlan(
                 element=element,
                 property_sets=property_sets,
+                delete_property_sets=property_sets_to_delete_for_name(element.Name, config),
                 property_values=property_values_for_name(element.Name, config),
             )
         )
@@ -150,9 +157,14 @@ def apply_mapping(
 
     created = 0
     updated = 0
+    deleted = 0
     written = 0
     assignments: dict[str, int] = {}
     for plan in plans:
+        for set_name in plan.delete_property_sets:
+            for property_set in direct_property_sets(plan.element, set_name):
+                remove_pset(model, product=plan.element, pset=property_set)
+                deleted += 1
         for set_name in plan.property_sets:
             matches = direct_property_sets(plan.element, set_name)
             if matches:
@@ -176,6 +188,7 @@ def apply_mapping(
     return MappingResult(
         selected_elements=len(plans),
         excluded_elements=excluded,
+        deleted_property_sets=deleted,
         created_property_sets=created,
         updated_property_sets=updated,
         written_properties=written,

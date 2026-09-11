@@ -32,3 +32,15 @@ def property_values_for_name(
             for set_name, properties in rule.values.items():
                 values.setdefault(set_name, {}).update(properties)
     return values
+
+
+def property_sets_to_delete_for_name(name: str | None, config: MappingConfig) -> tuple[str, ...]:
+    candidate = name or ""
+    if any(pattern.fullmatch(candidate) for pattern in config.exclude_name_patterns):
+        return ()
+
+    property_sets = list(config.delete_property_sets)
+    for rule in config.rules:
+        if rule.name_pattern.fullmatch(candidate):
+            property_sets.extend(rule.delete_property_sets)
+    return tuple(dict.fromkeys(property_sets))
