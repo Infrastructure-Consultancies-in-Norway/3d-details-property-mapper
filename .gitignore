@@ -13,3 +13,10 @@ build/
 .cache/
 ifc-files/output/*.ifc
 ifc-files/output/*.tmp
+
+.DS_Store
+.DS_Store?
+*.swp
+*.swo
+*~
+.env.local
