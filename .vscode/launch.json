@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "snacks-ifc: run",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "property_mapper.cli",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": []
+        },
+        {
+            "name": "snacks-ifc: dry-run",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "property_mapper.cli",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["--dry-run"]
+        }
+    ]
+}
