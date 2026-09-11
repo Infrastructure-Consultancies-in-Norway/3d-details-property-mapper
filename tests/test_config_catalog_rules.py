@@ -6,7 +6,7 @@ from property_mapper.catalog import CatalogError, parse_catalog
 from property_mapper.config import ConfigError, load_config, parse_config
 from property_mapper.rules import property_sets_for_name, property_values_for_name
 
-CONFIG_PATH = Path(__file__).parents[1] / "config" / "mapping.yaml"
+CONFIG_PATH = Path(__file__).parents[1] / "config" / "SNACKS_Detalj_Bolter.yaml"
 
 
 def test_mapping_for_fixture_names() -> None:
@@ -14,17 +14,28 @@ def test_mapping_for_fixture_names() -> None:
 
     assert property_sets_for_name("Ramme", config) == ()
     assert property_sets_for_name("ramme", config) == ()
-    assert property_sets_for_name("Landkar", config) == (
+    assert config.spatial_structure == {
+        "IfcProject": "SNACKS Detalj Bolter",
+        "IfcSite": "SNACKS Detalj Bolter",
+        "IfcBuilding": "Bru",
+        "IfcBuildingStorey": "Bolter",
+    }
+    assert property_sets_for_name("Bruplate", config) == (
         "BIM_Tverrfaglig",
         "KON_Felles",
         "KON_Betong",
     )
-    assert property_sets_for_name("Løsmasser_2", config) == (
+    assert property_sets_for_name("Boltegruppe", config) == (
         "BIM_Tverrfaglig",
-        "KON_Løsmasser",
+        "KON_Felles",
+        "KON_Festemidler",
     )
-    assert property_sets_for_name("Armering_Rustfritt", config)[-1] == "KON_Armering"
-    assert property_sets_for_name("Fuktisolering_(A3-4)", config) == (
+    assert property_sets_for_name("Rekkverk", config) == (
+        "BIM_Tverrfaglig",
+        "KON_Felles",
+        "KON_Stål",
+    )
+    assert property_sets_for_name("Topeka", config) == (
         "BIM_Tverrfaglig",
         "KON_Felles",
     )

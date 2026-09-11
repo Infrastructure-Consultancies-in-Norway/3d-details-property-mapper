@@ -1,0 +1,76 @@
+version: 1.0
+
+models:
+  - SNACKS_Detalj_Bolter.ifc
+
+spatial_structure:
+  IfcProject: SNACKS Detalj Bolter
+  IfcSite: SNACKS Detalj Bolter
+  IfcBuilding: Bru
+  IfcBuildingStorey: Bolter
+
+selection:
+  ifc_class: IfcElement
+  exclude_name_patterns:
+    - '^Ramme$'
+
+base_property_sets:
+  - BIM_Tverrfaglig
+  - KON_Felles
+
+rules:
+  - id: asphalt-binding-course
+    name_pattern: '^Asfaltdekker_bindlag$'
+    property_sets:
+      - KON_Felles
+
+  - id: asphalt-wearing-course
+    name_pattern: '^Asfaltdekker_slitelag$'
+    property_sets:
+      - KON_Felles
+
+  - id: bolt-group
+    name_pattern: '^Boltegruppe$'
+    property_sets:
+      - KON_Festemidler
+
+  - id: bridge-deck
+    name_pattern: '^Bruplate$'
+    property_sets:
+      - KON_Betong
+
+  - id: c60bp2-bolt
+    name_pattern: '^C60BP2$'
+    property_sets:
+      - KON_Festemidler
+
+  - id: end-plate
+    name_pattern: '^Endeplate$'
+    property_sets:
+      - KON_Stål
+
+  - id: edge-beam
+    name_pattern: '^Kantbjelke$'
+    property_sets:
+      - KON_Betong
+
+  - id: nut
+    name_pattern: '^Mutter$'
+    property_sets:
+      - KON_Festemidler
+
+  - id: railing
+    name_pattern: '^Rekkverk$'
+    property_sets:
+      - KON_Stål
+
+  - id: washer
+    name_pattern: '^Skive$'
+    property_sets:
+      - KON_Festemidler
+
+  - id: topeka-membrane
+    name_pattern: '^Topeka$'
+    property_sets:
+      - KON_Felles
+

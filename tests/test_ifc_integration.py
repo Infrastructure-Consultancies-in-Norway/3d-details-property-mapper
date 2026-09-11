@@ -8,8 +8,8 @@ from property_mapper.ifc_mapper import direct_property_sets
 from property_mapper.runner import process_file
 
 ROOT = Path(__file__).parents[1]
-INPUT = ROOT / "ifc-files" / "input" / "SNACKS_Detalj_Overgangsplate.ifc"
-CONFIG = ROOT / "config" / "mapping.yaml"
+INPUT = ROOT / "ifc-files" / "input" / "SNACKS_Detalj_Bolter.ifc"
+CONFIG = ROOT / "config" / "SNACKS_Detalj_Bolter.yaml"
 
 
 def _catalog_data() -> list[dict[str, object]]:
@@ -20,6 +20,8 @@ def _catalog_data() -> list[dict[str, object]]:
         "KON_Løsmasser",
         "KON_Armering",
         "KON_Betong",
+        "KON_Festemidler",
+        "KON_Stål",
     ):
         property_names = [f"{name} test"]
         if name == "KON_Felles":
@@ -68,39 +70,34 @@ def test_process_real_fixture_and_rerun_idempotently(tmp_path: Path) -> None:
         for property_set in direct_property_sets(element, set_name)
     }
 
-    assert first.selected_elements == 18
-    assert first.excluded_elements == 1
-    assert first.created_property_sets == 39
+    assert first.selected_elements == 66
+    assert first.excluded_elements == 3
+    assert first.created_property_sets == 190
     assert first.assignments == {
-        "BIM_Tverrfaglig": 18,
-        "KON_Felles": 15,
-        "KON_Armering": 1,
-        "KON_Betong": 2,
-        "KON_Løsmasser": 3,
+        "BIM_Tverrfaglig": 66,
+        "KON_Felles": 66,
+        "KON_Festemidler": 43,
+        "KON_Betong": 4,
+        "KON_Stål": 11,
     }
-    assert len(first_model.by_type("IfcElement")) == 19
-    assert _assignment_count(first_model, "BIM_Tverrfaglig") == 18
-    assert _assignment_count(first_model, "KON_Felles") == 15
-    assert _assignment_count(first_model, "KON_Løsmasser") == 3
-    assert _assignment_count(first_model, "KON_Armering") == 1
-    assert _assignment_count(first_model, "KON_Betong") == 2
-    loose_materials = [
-        element
-        for element in first_model.by_type("IfcElement")
-        if element.Name in {"Løsmasser_1", "Løsmasser_2"}
-    ]
-    assert len(loose_materials) == 3
-    assert all(not direct_property_sets(element, "KON_Felles") for element in loose_materials)
-    transition_slab = next(
-        element for element in first_model.by_type("IfcElement") if element.Name == "Overgangsplate"
+    assert len(first_model.by_type("IfcElement")) == 69
+    assert first_model.by_type("IfcProject")[0].Name == "SNACKS Detalj Bolter"
+    assert first_model.by_type("IfcSite")[0].Name == "SNACKS Detalj Bolter"
+    assert first_model.by_type("IfcBuilding")[0].Name == "Bru"
+    assert first_model.by_type("IfcBuildingStorey")[0].Name == "Bolter"
+    assert _assignment_count(first_model, "BIM_Tverrfaglig") == 66
+    assert _assignment_count(first_model, "KON_Felles") == 66
+    assert _assignment_count(first_model, "KON_Festemidler") == 43
+    assert _assignment_count(first_model, "KON_Betong") == 4
+    assert _assignment_count(first_model, "KON_Stål") == 11
+    bolt_group = next(
+        element for element in first_model.by_type("IfcElement") if element.Name == "Boltegruppe"
     )
-    common_properties = {
-        prop.Name: prop.NominalValue.wrappedValue
-        for prop in direct_property_sets(transition_slab, "KON_Felles")[0].HasProperties
-    }
-    assert common_properties["KON.10 - Konstruksjonsinndeling"] == "Underbygning"
-    assert common_properties["KON.11 - Konstruksjonsdel"] == "Landkar"
-    assert common_properties["KON.13 - Elementnavn"] == "Overgangsplate"
+    assert direct_property_sets(bolt_group, "KON_Festemidler")
+    bridge_deck = next(
+        element for element in first_model.by_type("IfcElement") if element.Name == "Bruplate"
+    )
+    assert direct_property_sets(bridge_deck, "KON_Betong")
     frame = next(
         element for element in first_model.by_type("IfcElement") if element.Name == "Ramme"
     )
@@ -115,7 +112,7 @@ def test_process_real_fixture_and_rerun_idempotently(tmp_path: Path) -> None:
     second_model = ifcopenshell.open(second_output)
 
     assert second.created_property_sets == 0
-    assert second.updated_property_sets == 39
+    assert second.updated_property_sets == 190
     assert {
         (element.GlobalId, property_set.Name): property_set.GlobalId
         for element in second_model.by_type("IfcElement")

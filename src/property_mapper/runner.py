@@ -9,6 +9,18 @@ from .config import MappingConfig
 from .ifc_mapper import MappingResult, apply_mapping, build_plan, direct_property_sets
 
 
+def apply_spatial_structure(model: ifcopenshell.file, config: MappingConfig) -> None:
+    for ifc_class, name in config.spatial_structure.items():
+        try:
+            entities = model.by_type(ifc_class)
+        except RuntimeError as error:
+            raise ValueError(f"{ifc_class} is not available in schema {model.schema}") from error
+        if not entities:
+            raise ValueError(f"No {ifc_class} found in model")
+        for entity in entities:
+            entity.Name = name
+
+
 def process_file(
     input_path: Path,
     output_path: Path,
@@ -29,12 +41,16 @@ def process_file(
                 assignments[name] = assignments.get(name, 0) + 1
         return MappingResult(len(plans), excluded, 0, 0, 0, assignments)
 
+    apply_spatial_structure(model, config)
     result = apply_mapping(model, config, catalog)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path = output_path.with_suffix(output_path.suffix + ".tmp")
     try:
         model.write(temporary_path)
         reopened = ifcopenshell.open(temporary_path)
+        for ifc_class, name in config.spatial_structure.items():
+            if any(entity.Name != name for entity in reopened.by_type(ifc_class)):
+                raise ValueError(f"Output validation failed for {ifc_class} name")
         reopened_elements = {
             element.GlobalId: element for element in reopened.by_type(config.ifc_class)
         }

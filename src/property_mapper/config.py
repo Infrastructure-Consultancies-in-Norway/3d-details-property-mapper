@@ -24,6 +24,7 @@ class MappingRule:
 @dataclass(frozen=True)
 class MappingConfig:
     models: tuple[str, ...]
+    spatial_structure: dict[str, str]
     ifc_class: str
     exclude_name_patterns: tuple[re.Pattern[str], ...]
     base_property_sets: tuple[str, ...]
@@ -80,11 +81,26 @@ def _property_values(value: Any, field: str) -> dict[str, dict[str, Any]]:
     return parsed
 
 
+def _spatial_structure(value: Any) -> dict[str, str]:
+    if value is None:
+        return {}
+    raw_names = _require_mapping(value, "spatial_structure")
+    parsed: dict[str, str] = {}
+    for ifc_class, raw_name in raw_names.items():
+        if not isinstance(ifc_class, str) or not ifc_class.startswith("Ifc"):
+            raise ConfigError("spatial_structure must use IFC class names")
+        if not isinstance(raw_name, str) or not raw_name.strip():
+            raise ConfigError(f"spatial_structure.{ifc_class} must be a non-empty string")
+        parsed[ifc_class] = raw_name
+    return parsed
+
+
 def parse_config(data: Any) -> MappingConfig:
     root = _require_mapping(data, "configuration")
     allowed_root = {
         "version",
         "models",
+        "spatial_structure",
         "selection",
         "base_property_sets",
         "default_values",
@@ -97,6 +113,7 @@ def parse_config(data: Any) -> MappingConfig:
         raise ConfigError("Only mapping configuration version 1 is supported")
 
     models = _require_strings(root.get("models"), "models")
+    spatial_structure = _spatial_structure(root.get("spatial_structure"))
 
     selection = _require_mapping(root.get("selection"), "selection")
     if set(selection) - {"ifc_class", "exclude_name_patterns"}:
@@ -174,6 +191,7 @@ def parse_config(data: Any) -> MappingConfig:
 
     return MappingConfig(
         models=tuple(dict.fromkeys(models)),
+        spatial_structure=spatial_structure,
         ifc_class=ifc_class,
         exclude_name_patterns=tuple(
             _compile(pattern, "selection.exclude_name_patterns") for pattern in exclusions
@@ -190,16 +208,13 @@ def load_config(path: Path) -> MappingConfig:
 
 
 def load_configs(path: Path) -> tuple[MappingConfig, ...]:
-    if path.is_dir():
-        paths = sorted(set(path.glob("*.yaml")) | set(path.glob("*.yml")))
-    else:
-        paths = [path]
+    paths = sorted(set(path.glob("*.yaml")) | set(path.glob("*.yml"))) if path.is_dir() else [path]
     if not paths:
         raise ConfigError(f"No configuration files found at {path}")
 
     configs = [load_config(config_path) for config_path in paths]
     seen_models: dict[str, Path] = {}
-    for config_path, config in zip(paths, configs):
+    for config_path, config in zip(paths, configs, strict=True):
         for model in config.models:
             if model in seen_models:
                 raise ConfigError(
