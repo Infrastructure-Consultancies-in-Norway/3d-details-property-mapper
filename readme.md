@@ -130,7 +130,7 @@ rules:
 
 Egenskapssettet må være tilordnet som basissett eller av den aktuelle regelen.
 Egenskapsnavn og datatype valideres mot den låste SNACKS-katalogen før IFC-modellen
-endres. Egenskaper uten YAML-verdi bruker fortsatt katalogens fallbackverdi.
+endres. Alle obligatoriske egenskaper som skrives må ha verdi i YAML.
 
 ## SNACKS-katalog
 
@@ -143,14 +143,11 @@ SHA-256-verdien:
 ```
 
 En lokal, identisk katalogfil kan angis med `--catalog`. Bare svarte,
-obligatoriske egenskaper brukes. Grå, valgfrie egenskaper hoppes over. Verdien
-velges i denne rekkefølgen:
+obligatoriske egenskaper brukes. Grå, valgfrie egenskaper hoppes over. Katalogen
+brukes til navn, datatype og obligatorisk-status; faktiske IFC-verdier leses fra
+YAML-konfigurasjonen.
 
-1. `SampleValue`
-2. første `RecommendedValues`
-3. første `AllowedValues`
-
-Kjøringen stopper før IFC-endring dersom et obligatorisk felt mangler verdi,
+Kjøringen stopper før IFC-endring dersom et obligatorisk felt mangler YAML-verdi,
 katalogen har feil checksum eller konfigurasjonen er ugyldig.
 
 ## Oppdatering og validering

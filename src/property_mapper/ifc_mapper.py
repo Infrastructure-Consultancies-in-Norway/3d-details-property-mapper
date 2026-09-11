@@ -119,6 +119,25 @@ def _validate_config_values(
                     ) from error
 
 
+def _validate_plan_values(
+    plans: list[ElementPlan],
+    catalog: dict[str, CatalogPropertySet],
+) -> None:
+    for plan in plans:
+        for set_name in plan.property_sets:
+            configured_values = plan.property_values.get(set_name, {})
+            missing = [
+                definition.name
+                for definition in catalog[set_name].properties
+                if definition.name not in configured_values
+            ]
+            if missing:
+                raise MappingError(
+                    f"{plan.element.GlobalId} is missing YAML values for {set_name}: "
+                    f"{', '.join(missing)}"
+                )
+
+
 def apply_mapping(
     model: ifcopenshell.file,
     config: MappingConfig,
@@ -126,6 +145,7 @@ def apply_mapping(
 ) -> MappingResult:
     _validate_config_values(config, catalog)
     plans, excluded = build_plan(model, config)
+    _validate_plan_values(plans, catalog)
     _preflight(plans, catalog)
 
     created = 0
@@ -145,7 +165,7 @@ def apply_mapping(
                 definition.name: create_ifc_value(
                     model,
                     definition,
-                    plan.property_values.get(set_name, {}).get(definition.name, definition.value),
+                    plan.property_values[set_name][definition.name],
                 )
                 for definition in catalog[set_name].properties
             }

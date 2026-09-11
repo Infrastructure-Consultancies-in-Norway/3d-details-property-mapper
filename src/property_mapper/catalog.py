@@ -22,7 +22,6 @@ class CatalogError(ValueError):
 class CatalogProperty:
     name: str
     datatype: str
-    value: Any
 
 
 @dataclass(frozen=True)
@@ -63,16 +62,6 @@ def load_catalog_data(cache_path: Path, source_path: Path | None = None) -> Any:
         raise CatalogError(f"SNACKS catalog is not valid UTF-8 JSON: {error}") from error
 
 
-def _first_value(raw_property: dict[str, Any]) -> Any:
-    if "SampleValue" in raw_property and raw_property["SampleValue"] is not None:
-        return raw_property["SampleValue"]
-    for field in ("RecommendedValues", "AllowedValues"):
-        values = raw_property.get(field, [])
-        if isinstance(values, list) and values:
-            return values[0]
-    return None
-
-
 def parse_catalog(data: Any, required_sets: tuple[str, ...]) -> dict[str, CatalogPropertySet]:
     if not isinstance(data, list):
         raise CatalogError("SNACKS catalog must be a JSON array")
@@ -106,11 +95,8 @@ def parse_catalog(data: Any, required_sets: tuple[str, ...]) -> dict[str, Catalo
                 raise CatalogError(f"Duplicate property {set_name}.{name}")
             if not isinstance(datatype, str) or not datatype.startswith("Ifc"):
                 raise CatalogError(f"{set_name}.{name} has an invalid IFC datatype")
-            value = _first_value(raw_property)
-            if value is None:
-                raise CatalogError(f"{set_name}.{name} has no example or fallback value")
             names.add(name)
-            properties.append(CatalogProperty(name=name, datatype=datatype, value=value))
+            properties.append(CatalogProperty(name=name, datatype=datatype))
 
         found[set_name] = CatalogPropertySet(name=set_name, properties=tuple(properties))
 

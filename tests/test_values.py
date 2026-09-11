@@ -24,7 +24,11 @@ def test_create_ifc_value(
 ) -> None:
     model = ifcopenshell.file(schema="IFC2X3")
 
-    value = create_ifc_value(model, CatalogProperty("Property", datatype, source))
+    value = create_ifc_value(
+        model,
+        CatalogProperty("Property", datatype),
+        source,
+    )
 
     assert value.is_a() == expected_type
     assert value.wrappedValue == expected_value
@@ -34,4 +38,4 @@ def test_integer_rejects_fraction() -> None:
     model = ifcopenshell.file(schema="IFC2X3")
 
     with pytest.raises(CatalogError, match="whole number"):
-        create_ifc_value(model, CatalogProperty("Count", "IfcInteger", "1.5"))
+        create_ifc_value(model, CatalogProperty("Count", "IfcInteger"), "1.5")

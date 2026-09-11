@@ -129,12 +129,6 @@ def parse_config(data: Any) -> MappingConfig:
 
     base_sets = _require_strings(root.get("base_property_sets"), "base_property_sets")
     default_values = _property_values(root.get("default_values"), "default_values")
-    unknown_default_sets = set(default_values) - set(base_sets)
-    if unknown_default_sets:
-        raise ConfigError(
-            "default_values references non-base property sets: "
-            + ", ".join(sorted(unknown_default_sets))
-        )
     raw_rules = root.get("rules")
     if not isinstance(raw_rules, list):
         raise ConfigError("rules must be a list")
@@ -187,6 +181,16 @@ def parse_config(data: Any) -> MappingConfig:
                 exclude_property_sets=tuple(dict.fromkeys(excluded_sets)),
                 values=values,
             )
+        )
+
+    assignable_sets = set(base_sets)
+    for rule in rules:
+        assignable_sets.update(rule.property_sets)
+    unknown_default_sets = set(default_values) - assignable_sets
+    if unknown_default_sets:
+        raise ConfigError(
+            "default_values references unassigned property sets: "
+            + ", ".join(sorted(unknown_default_sets))
         )
 
     return MappingConfig(

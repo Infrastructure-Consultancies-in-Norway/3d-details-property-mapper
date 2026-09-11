@@ -18,6 +18,61 @@ base_property_sets:
   - BIM_Tverrfaglig
   - KON_Felles
 
+default_values:
+  BIM_Tverrfaglig:
+    'BIM.04 - MMI': '350'
+    'BIM.05 - Elementnavn': Fundament
+    'BIM.06 - Fag': KON
+    'BIM.07 - Revisjon': A
+    'BIM.08 - Revisjonsdato': '2023-01-16'
+
+  KON_Felles:
+    'KON.01 - Konstruksjonsnummer': K100
+    'KON.03 - Akse': '01'
+    'KON.10 - Konstruksjonsinndeling': Underbygning / Tårn
+    'KON.11 - Konstruksjonsdel': Fundament / Rigel
+    'KON.13 - Elementnavn': Fundament / Bjelke
+    'KON.20 - Produksjonsenhet': PLD-1002
+    'KON.30 - Plasseringsprioritet': 2 - Viker for 1
+    'KON.31 - Plasseringsmerknad': Maks to jern kan kappes dersom konflikt med sluk
+    'KON.40 - Materialtype': Betong
+    'KON.41 - Materialspesifikasjon': B35 SV-Standard
+    'KON.51 - Produksjonsmerknad 1': Det tillates ikke porer med utbredelse >= 15 mm og/eller dybde >= 10 mm.
+    'KON.53 - Utførelsesmerknad 1': KTB-bjelker skal fastholdes mot vindlast I byggefase iht HB V426, pkt. 4.5.2
+
+  KON_Betong:
+    'BET.01 - Utførelsesklasse': '2'
+    'BET.02 - Nøyaktighetsklasse': B
+    'BET.04 - Materialspesifikasjon (dup)': B45 SV-Standard
+    'BET.10 - Produksjonsmetode': Plasstøpt
+    'BET.11 - Forskaling': Stående bord
+    'BET.21 - Overdekning hovedarmering': 'UK, NS og FS: 75mm ±15mm, OK: 65mm ±15mm'
+    'BET.30 - Diameter monteringsstenger': 12 mm
+    'BET.31 - Overdekning monteringsstenger': 'UK, NS og FS: 60mm ±5mm, OK: 50mm ±5mm'
+
+  KON_Stål:
+    'STL.01 - Utførelsesklasse': EXC1
+    'STL.02 - Tilvirkningstoleranse': '1'
+    'STL.03 - Monteringstoleranse': '1'
+    'STL.11 - Farge på siste dekkestrøk': RAL7036
+    'STL.31 - Materialspesifikasjon (dup)': S355ML
+    'STL.32 - Materialstandard': NS-EN 10025-4
+    'STL.50 - Korrosjonsbeskyttelse': System 1 iht. SVV hb. N400 pkt. 9.2.1
+
+  KON_Festemidler:
+    'FMI.01 - Navn': 6k-skrue M20x60-NS-ISO 4014
+    'FMI.02 - Antall skruer': 4
+    'FMI.03 - Skruediameter': 16 mm
+    'FMI.04 - Skruelengde': 100 mm
+    'FMI.05 - Kvalitet': '8.8'
+    'FMI.06 - Monteringssted': Byggeplass
+    'FMI.10 - Hulldiameter': 18 mm
+    'FMI.11 - Hullmerknad': Hullet skal være gjenget
+    'FMI.30 - Mutternavn': 6k-mutter M20-NS-ISO 4032
+    'FMI.31 - Antall muttere': 4
+    'FMI.40 - Skivenavn': Underlagsskive M20-NS-ISO 7089
+    'FMI.41 - Antall skiver': 4
+
 rules:
   - id: asphalt-binding-course
     name_pattern: '^Asfaltdekker_bindlag$'

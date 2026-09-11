@@ -12,26 +12,10 @@ INPUT = ROOT / "ifc-files" / "input" / "SNACKS_Detalj_Bolter.ifc"
 CONFIG = ROOT / "config" / "SNACKS_Detalj_Bolter.yaml"
 
 
-def _catalog_data() -> list[dict[str, object]]:
+def _catalog_data(config) -> list[dict[str, object]]:
     data: list[dict[str, object]] = []
-    for name in (
-        "BIM_Tverrfaglig",
-        "KON_Felles",
-        "KON_Løsmasser",
-        "KON_Armering",
-        "KON_Betong",
-        "KON_Festemidler",
-        "KON_Stål",
-    ):
-        property_names = [f"{name} test"]
-        if name == "KON_Felles":
-            property_names.extend(
-                [
-                    "KON.10 - Konstruksjonsinndeling",
-                    "KON.11 - Konstruksjonsdel",
-                    "KON.13 - Elementnavn",
-                ]
-            )
+    for name in config.referenced_property_sets:
+        property_names = config.default_values[name]
         data.append(
             {
                 "Name": name,
@@ -57,7 +41,7 @@ def _assignment_count(model: ifcopenshell.file, name: str) -> int:
 def test_process_real_fixture_and_rerun_idempotently(tmp_path: Path) -> None:
     original_bytes = INPUT.read_bytes()
     config = load_config(CONFIG)
-    catalog = parse_catalog(_catalog_data(), config.referenced_property_sets)
+    catalog = parse_catalog(_catalog_data(config), config.referenced_property_sets)
     first_output = tmp_path / "first.ifc"
     second_output = tmp_path / "second.ifc"
 

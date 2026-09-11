@@ -1,9 +1,11 @@
 from pathlib import Path
 
+import ifcopenshell
 import pytest
 
-from property_mapper.catalog import CatalogError, parse_catalog
+from property_mapper.catalog import CatalogProperty, CatalogPropertySet, parse_catalog
 from property_mapper.config import ConfigError, load_config, parse_config
+from property_mapper.ifc_mapper import MappingError, apply_mapping
 from property_mapper.rules import property_sets_for_name, property_values_for_name
 
 CONFIG_PATH = Path(__file__).parents[1] / "config" / "SNACKS_Detalj_Bolter.yaml"
@@ -93,7 +95,73 @@ def test_property_values_use_rule_over_default() -> None:
     }
 
 
-def test_catalog_keeps_black_required_and_skips_gray() -> None:
+def test_default_values_can_reference_rule_property_sets() -> None:
+    config = parse_config(
+        {
+            "version": 1,
+            "models": ["Test.ifc"],
+            "selection": {"ifc_class": "IfcElement", "exclude_name_patterns": []},
+            "base_property_sets": ["KON_Felles"],
+            "default_values": {
+                "KON_Felles": {"Common property": "common value"},
+                "KON_Betong": {"Concrete property": "default concrete"},
+            },
+            "rules": [
+                {
+                    "id": "landkar",
+                    "name_pattern": "^Landkar$",
+                    "property_sets": ["KON_Betong"],
+                }
+            ],
+        }
+    )
+
+    assert property_values_for_name("Landkar", config)["KON_Betong"] == {
+        "Concrete property": "default concrete"
+    }
+
+
+def test_mapping_requires_yaml_values_for_assigned_required_properties() -> None:
+    model = ifcopenshell.file(schema="IFC4")
+    model.create_entity(
+        "IfcBuildingElementProxy",
+        ifcopenshell.guid.new(),
+        None,
+        "Landkar",
+        None,
+        None,
+        None,
+        None,
+        None,
+    )
+    config = parse_config(
+        {
+            "version": 1,
+            "models": ["Test.ifc"],
+            "selection": {"ifc_class": "IfcElement", "exclude_name_patterns": []},
+            "base_property_sets": ["BIM_Tverrfaglig"],
+            "rules": [
+                {
+                    "id": "landkar",
+                    "name_pattern": "^Landkar$",
+                    "property_sets": ["KON_Felles"],
+                }
+            ],
+        }
+    )
+    catalog = {
+        "BIM_Tverrfaglig": CatalogPropertySet("BIM_Tverrfaglig", ()),
+        "KON_Felles": CatalogPropertySet(
+            "KON_Felles",
+            (CatalogProperty("Common property", "IfcText"),),
+        )
+    }
+
+    with pytest.raises(MappingError, match="missing YAML values"):
+        apply_mapping(model, config, catalog)
+
+
+def test_catalog_keeps_black_required_names_and_skips_gray() -> None:
     parsed = parse_catalog(
         [
             {
@@ -126,27 +194,28 @@ def test_catalog_keeps_black_required_and_skips_gray() -> None:
         ("KON_Felles",),
     )
 
-    assert [(prop.name, prop.value) for prop in parsed["KON_Felles"].properties] == [
-        ("Required sample", "demo"),
-        ("Required fallback", 0),
+    assert [prop.name for prop in parsed["KON_Felles"].properties] == [
+        "Required sample",
+        "Required fallback",
     ]
 
 
-def test_catalog_rejects_required_property_without_value() -> None:
-    with pytest.raises(CatalogError, match="no example or fallback"):
-        parse_catalog(
-            [
-                {
-                    "Name": "KON_Felles",
-                    "Properties": [
-                        {
-                            "PropertyName": "Missing",
-                            "Datatype": "IfcText",
-                            "RequirementColor": "Svart",
-                            "Required": True,
-                        }
-                    ],
-                }
-            ],
-            ("KON_Felles",),
-        )
+def test_catalog_accepts_required_property_without_example_value() -> None:
+    parsed = parse_catalog(
+        [
+            {
+                "Name": "KON_Felles",
+                "Properties": [
+                    {
+                        "PropertyName": "Missing",
+                        "Datatype": "IfcText",
+                        "RequirementColor": "Svart",
+                        "Required": True,
+                    }
+                ],
+            }
+        ],
+        ("KON_Felles",),
+    )
+
+    assert parsed["KON_Felles"].properties == (CatalogProperty("Missing", "IfcText"),)
