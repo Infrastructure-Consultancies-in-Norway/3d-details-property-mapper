@@ -35,6 +35,7 @@ def test_config_rejects_duplicate_rule_ids() -> None:
         parse_config(
             {
                 "version": 1,
+                "models": ["Test.ifc"],
                 "selection": {"ifc_class": "IfcElement", "exclude_name_patterns": []},
                 "base_property_sets": ["BIM_Tverrfaglig"],
                 "rules": [
@@ -49,6 +50,7 @@ def test_property_values_use_rule_over_default() -> None:
     config = parse_config(
         {
             "version": 1,
+            "models": ["Test.ifc"],
             "selection": {"ifc_class": "IfcElement", "exclude_name_patterns": []},
             "base_property_sets": ["KON_Felles"],
             "default_values": {

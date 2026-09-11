@@ -23,6 +23,7 @@ class MappingRule:
 
 @dataclass(frozen=True)
 class MappingConfig:
+    models: tuple[str, ...]
     ifc_class: str
     exclude_name_patterns: tuple[re.Pattern[str], ...]
     base_property_sets: tuple[str, ...]
@@ -81,12 +82,21 @@ def _property_values(value: Any, field: str) -> dict[str, dict[str, Any]]:
 
 def parse_config(data: Any) -> MappingConfig:
     root = _require_mapping(data, "configuration")
-    allowed_root = {"version", "selection", "base_property_sets", "default_values", "rules"}
+    allowed_root = {
+        "version",
+        "models",
+        "selection",
+        "base_property_sets",
+        "default_values",
+        "rules",
+    }
     unknown = set(root) - allowed_root
     if unknown:
         raise ConfigError(f"Unknown configuration fields: {', '.join(sorted(unknown))}")
     if root.get("version") != 1:
         raise ConfigError("Only mapping configuration version 1 is supported")
+
+    models = _require_strings(root.get("models"), "models")
 
     selection = _require_mapping(root.get("selection"), "selection")
     if set(selection) - {"ifc_class", "exclude_name_patterns"}:
@@ -163,6 +173,7 @@ def parse_config(data: Any) -> MappingConfig:
         )
 
     return MappingConfig(
+        models=tuple(dict.fromkeys(models)),
         ifc_class=ifc_class,
         exclude_name_patterns=tuple(
             _compile(pattern, "selection.exclude_name_patterns") for pattern in exclusions
@@ -176,3 +187,30 @@ def parse_config(data: Any) -> MappingConfig:
 def load_config(path: Path) -> MappingConfig:
     with path.open(encoding="utf-8") as config_file:
         return parse_config(yaml.safe_load(config_file))
+
+
+def load_configs(path: Path) -> tuple[MappingConfig, ...]:
+    if path.is_dir():
+        paths = sorted(set(path.glob("*.yaml")) | set(path.glob("*.yml")))
+    else:
+        paths = [path]
+    if not paths:
+        raise ConfigError(f"No configuration files found at {path}")
+
+    configs = [load_config(config_path) for config_path in paths]
+    seen_models: dict[str, Path] = {}
+    for config_path, config in zip(paths, configs):
+        for model in config.models:
+            if model in seen_models:
+                raise ConfigError(
+                    f"Model {model} is declared in both {seen_models[model]} and {config_path}"
+                )
+            seen_models[model] = config_path
+    return tuple(configs)
+
+
+def config_for_model(configs: tuple[MappingConfig, ...], model_name: str) -> MappingConfig:
+    for config in configs:
+        if model_name in config.models:
+            return config
+    raise ConfigError(f"No configuration declares model: {model_name}")

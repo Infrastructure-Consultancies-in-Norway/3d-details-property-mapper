@@ -1,5 +1,15 @@
 version: 1
 
+models:
+  - SNACKS_Detalj_Bolter.ifc
+  - SNACKS_Detalj_Jodringsbolt.ifc
+  - SNACKS_Detalj_Lager.ifc
+  - SNACKS_Detalj_Nivelleringsbolt.ifc
+  - SNACKS_Detalj_Overgangsplate.ifc
+  - SNACKS_Detalj_Pel.ifc
+  - SNACKS_Detalj_Sluk.ifc
+  - SNACKS_Detalj_Tilslutning_Kantbjelke.ifc
+
 selection:
   ifc_class: IfcElement
   exclude_name_patterns:
