@@ -10,7 +10,7 @@ build/
 *.egg-info/
 
 .cache/
-ifc-files/output/*.ifc
+# ifc-files/output/*.ifc
 ifc-files/output/*.tmp
 
 .DS_Store
