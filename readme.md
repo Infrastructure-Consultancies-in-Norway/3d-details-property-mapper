@@ -6,11 +6,20 @@ inputfiler.
 
 ## Oppsett
 
-Prosjektet krever Python 3.12 på Windows.
+Prosjektet krever Python 3.12, og fungerer på både Windows og macOS/Linux.
+
+**Windows (PowerShell):**
 
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+```
+
+**macOS/Linux:**
+
+```bash
+python3.12 -m venv .venv
+./.venv/bin/python -m pip install -e ".[dev]"
 ```
 
 Den lokale `.venv`-mappen er ignorert av Git.
@@ -19,23 +28,49 @@ Den lokale `.venv`-mappen er ignorert av Git.
 
 Legg IFC-filer i `ifc-files/input` og kjør:
 
+**Windows:**
+
 ```powershell
 .\.venv\Scripts\snacks-ifc.exe
+```
+
+**macOS/Linux:**
+
+```bash
+./.venv/bin/snacks-ifc
 ```
 
 Ferdige filer skrives med samme filnavn til `ifc-files/output`. Inputfilene blir
 liggende uendret. Test mappingen uten å skrive filer med:
 
+**Windows:**
+
 ```powershell
 .\.venv\Scripts\snacks-ifc.exe --dry-run
 ```
 
+**macOS/Linux:**
+
+```bash
+./.venv/bin/snacks-ifc --dry-run
+```
+
 En enkelt fil og en annen output kan angis eksplisitt:
+
+**Windows:**
 
 ```powershell
 .\.venv\Scripts\snacks-ifc.exe `
 	--input .\ifc-files\input\modell.ifc `
 	--output .\ifc-files\output\modell.ifc
+```
+
+**macOS/Linux:**
+
+```bash
+./.venv/bin/snacks-ifc \
+	--input ifc-files/input/modell.ifc \
+	--output ifc-files/output/modell.ifc
 ```
 
 ## Mapping
@@ -136,8 +171,18 @@ erstatter endelig output. For eksempelmodellen forventes:
 
 ## Utvikling
 
+**Windows:**
+
 ```powershell
 .\.venv\Scripts\python.exe -m pytest
 .\.venv\Scripts\python.exe -m ruff check .
 .\.venv\Scripts\python.exe -m ruff format --check .
+```
+
+**macOS/Linux:**
+
+```bash
+./.venv/bin/python -m pytest
+./.venv/bin/python -m ruff check .
+./.venv/bin/python -m ruff format --check .
 ```

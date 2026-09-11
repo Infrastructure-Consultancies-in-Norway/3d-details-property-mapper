@@ -145,9 +145,7 @@ def apply_mapping(
                 definition.name: create_ifc_value(
                     model,
                     definition,
-                    plan.property_values.get(set_name, {}).get(
-                        definition.name, definition.value
-                    ),
+                    plan.property_values.get(set_name, {}).get(definition.name, definition.value),
                 )
                 for definition in catalog[set_name].properties
             }
