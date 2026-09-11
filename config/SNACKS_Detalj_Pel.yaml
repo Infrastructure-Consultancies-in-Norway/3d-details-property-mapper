@@ -1,13 +1,13 @@
 version: 1.0
 
 models:
-  - SNACKS_Detalj_Jordingsbolt.ifc
+  - SNACKS_Detalj_Pel.ifc
 
 spatial_structure:
-  IfcProject: SNACKS Detalj Jordingsbolt
-  IfcSite: SNACKS Detalj Jordingsbolt
+  IfcProject: SNACKS Detalj Pel
+  IfcSite: SNACKS Detalj Pel
   IfcBuilding: Bru
-  IfcBuildingStorey: Jordingsbolt
+  IfcBuildingStorey: Pel
 
 selection:
   ifc_class: IfcElement
@@ -30,7 +30,7 @@ default_values:
     'KON.01 - Konstruksjonsnummer': K100
     'KON.03 - Akse': '01'
     'KON.10 - Konstruksjonsinndeling': Bru
-    'KON.11 - Konstruksjonsdel': Jordingsdetalj
+    'KON.11 - Konstruksjonsdel': Peldetalj
     'KON.13 - Elementnavn': Detaljelement
     'KON.20 - Produksjonsenhet': PLD-1002
     'KON.30 - Plasseringsprioritet': 2 - Viker for 1
@@ -59,21 +59,34 @@ default_values:
     'STL.32 - Materialstandard': NS-EN 10025-4
     'STL.50 - Korrosjonsbeskyttelse': System 1 iht. SVV hb. N400 pkt. 9.2.1
 
-  KON_Festemidler:
-    'FMI.01 - Navn': Jordingsbolt
-    'FMI.02 - Antall skruer': 1
-    'FMI.03 - Skruediameter': 20 mm
-    'FMI.04 - Skruelengde': 100 mm
-    'FMI.05 - Kvalitet': '8.8'
-    'FMI.06 - Monteringssted': Byggeplass
-    'FMI.10 - Hulldiameter': 22 mm
-    'FMI.11 - Hullmerknad': Ikke angitt
-    'FMI.30 - Mutternavn': Ikke aktuelt
-    'FMI.31 - Antall muttere': 0
-    'FMI.40 - Skivenavn': Ikke aktuelt
-    'FMI.41 - Antall skiver': 0
+  KON_Løsmasser:
+    'LSM.01 - Materialspesifikasjon (dup)': Løsmasser
+    'LSM.02 - Lagtykkelse': Ikke angitt
+    'LSM.03 - Komprimering': Ikke angitt
+    'LSM.04 - Løsmassemerknad krav': Ikke angitt
+
+  KON_Peler:
+    'PEL.01 - Pel-ID': Pel
+    'PEL.02 - Belastningtype': Trykk
+    'PEL.03 - Installert kapasitet [kN]': 0
+    'PEL.05 - Helning [n/1]': 0
+    'PEL.10 - Lengde ansett til teoretisk berg': 0 m
+    'PEL.12 - Minimum innboring i godt berg/innramming i faste masser': 0 m
+    'PEL.20 - Ansett-toleranse': 0 mm
+    'PEL.21 - Retningstoleranse [%]': 0
+    'PEL.22 - Helningstoleranse [%]': 0
 
 rules:
+  - id: loose-materials
+    name_pattern: '^Løsmasser_[12]$'
+    property_sets:
+      - KON_Løsmasser
+    exclude_property_sets:
+      - KON_Felles
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Løsmasser
+
   - id: foundation
     name_pattern: '^Fundament$'
     property_sets:
@@ -88,57 +101,58 @@ rules:
         'KON.40 - Materialtype': Betong
         'KON.41 - Materialspesifikasjon': B45 SV-Standard
 
-  - id: landkar
-    name_pattern: '^Landkar$'
+  - id: pile-head
+    name_pattern: '^Hode_Stålkjernepel$'
     property_sets:
-      - KON_Betong
+      - KON_Peler
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Landkar
+        'BIM.05 - Elementnavn': Hode stålkjernepel
       KON_Felles:
-        'KON.10 - Konstruksjonsinndeling': Underbygning
-        'KON.11 - Konstruksjonsdel': Landkar
-        'KON.13 - Elementnavn': Landkar
-        'KON.40 - Materialtype': Betong
-        'KON.41 - Materialspesifikasjon': B45 SV-Standard
+        'KON.11 - Konstruksjonsdel': Stålkjernepel
+        'KON.13 - Elementnavn': Hode stålkjernepel
+        'KON.40 - Materialtype': Stål
+        'KON.41 - Materialspesifikasjon': Ikke angitt
+      KON_Peler:
+        'PEL.01 - Pel-ID': Hode stålkjernepel
 
-  - id: grounding-conductor
-    name_pattern: '^Jordingsledning$'
+  - id: casing-pipe
+    name_pattern: '^Foringsrør$'
     property_sets:
       - KON_Stål
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Jordingsledning
+        'BIM.05 - Elementnavn': Foringsrør
       KON_Felles:
-        'KON.11 - Konstruksjonsdel': Jordingsledning
-        'KON.13 - Elementnavn': Jordingsledning
+        'KON.11 - Konstruksjonsdel': Foringsrør
+        'KON.13 - Elementnavn': Foringsrør
         'KON.40 - Materialtype': Stål
-        'KON.41 - Materialspesifikasjon': Rustfritt stål
-        'KON.51 - Produksjonsmerknad 1': Ikke aktuelt
-        'KON.53 - Utførelsesmerknad 1': Ikke angitt
-      KON_Stål:
-        'STL.31 - Materialspesifikasjon (dup)': Rustfritt stål
-        'STL.32 - Materialstandard': Ikke angitt
-        'STL.50 - Korrosjonsbeskyttelse': Ikke aktuelt
+        'KON.41 - Materialspesifikasjon': S355ML
 
-  - id: grounding-bolt
-    name_pattern: '^Jordingsbolt$'
+  - id: grout
+    name_pattern: '^Omstøpningsmørtel$'
     property_sets:
-      - KON_Festemidler
+      - KON_Felles
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Jordingsbolt
+        'BIM.05 - Elementnavn': Omstøpningsmørtel
       KON_Felles:
-        'KON.11 - Konstruksjonsdel': Jordingsbolt
-        'KON.13 - Elementnavn': Jordingsbolt
+        'KON.11 - Konstruksjonsdel': Omstøpningsmørtel
+        'KON.13 - Elementnavn': Omstøpningsmørtel
+        'KON.40 - Materialtype': Mørtel
+        'KON.41 - Materialspesifikasjon': Ikke angitt
+
+  - id: steel-core-pile
+    name_pattern: '^Stålkjernepel$'
+    property_sets:
+      - KON_Peler
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Stålkjernepel
+      KON_Felles:
+        'KON.11 - Konstruksjonsdel': Stålkjernepel
+        'KON.13 - Elementnavn': Stålkjernepel
         'KON.40 - Materialtype': Stål
-        'KON.41 - Materialspesifikasjon': '8.8'
-        'KON.51 - Produksjonsmerknad 1': Ikke aktuelt
-        'KON.53 - Utførelsesmerknad 1': Ikke angitt
-      KON_Festemidler:
-        'FMI.01 - Navn': Jordingsbolt
-        'FMI.02 - Antall skruer': 1
-        'FMI.30 - Mutternavn': Ikke aktuelt
-        'FMI.31 - Antall muttere': 0
-        'FMI.40 - Skivenavn': Ikke aktuelt
-        'FMI.41 - Antall skiver': 0
+        'KON.41 - Materialspesifikasjon': Ikke angitt
+      KON_Peler:
+        'PEL.01 - Pel-ID': Stålkjernepel

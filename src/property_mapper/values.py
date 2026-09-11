@@ -12,7 +12,9 @@ _CANONICAL_TYPES = {
     "ifctext": "IfcText",
     "ifcinteger": "IfcInteger",
     "ifclengthmeasure": "IfcLengthMeasure",
+    "ifclenghtmeasure": "IfcLengthMeasure",
     "ifcmassmeasure": "IfcMassMeasure",
+    "ifcreal": "IfcReal",
 }
 
 
