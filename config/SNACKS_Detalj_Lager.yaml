@@ -20,6 +20,11 @@ delete_property_sets:
   - Tekla Quantity
   - SlabBaseQuantities
   - Pset_SlabCommon
+  - BeamBaseQuantities
+  - ColumnBaseQuantities
+  - Pours
+  - Pset_BeamCommon
+  - Pset_ColumnCommon
 
 base_property_sets:
   - BIM_Tverrfaglig
