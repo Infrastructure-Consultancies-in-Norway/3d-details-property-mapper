@@ -19,6 +19,9 @@ delete_property_sets:
   - Tekla Quantity
   - SlabBaseQuantities
   - Pset_SlabCommon
+  - BeamBaseQuantities
+  - Pours
+  - Pset_BeamCommon
 
 base_property_sets:
   - BIM_Tverrfaglig
