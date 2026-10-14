@@ -12,16 +12,25 @@ spatial_structure:
 selection:
   ifc_class: IfcElement
   exclude_name_patterns:
-    - '^Ramme$'
+    - '^Merknad$'
 
 delete_property_sets:
   - Tekla Common
   - Tekla Quantity
+  - Tekla Reinforcement - General
+  - Tekla Reinforcement - Bending List
+  - Tekla Reinforcement - End Conditions
+  - Pours
+  - BeamBaseQuantities
+  - Pset_BeamCommon
+  - ColumnBaseQuantities
+  - Pset_ColumnCommon
+  - PlateBaseQuantities
+  - Pset_PlateCommon
   - SlabBaseQuantities
   - Pset_SlabCommon
-  - BeamBaseQuantities
-  - Pours
-  - Pset_BeamCommon
+  - WallBaseQuantities
+  - Pset_WallCommon
 
 base_property_sets:
   - BIM_Tverrfaglig
@@ -111,16 +120,16 @@ rules:
         'KON.40 - Materialtype': Betong
         'KON.41 - Materialspesifikasjon': B45 SV-Standard
 
-  - id: grounding-conductor
-    name_pattern: '^Jordingsledning$'
+  - id: grounding-cable
+    name_pattern: '^Jordingskabel$'
     property_sets:
       - KON_Stål
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Jordingsledning
+        'BIM.05 - Elementnavn': Jordingskabel
       KON_Felles:
-        'KON.11 - Konstruksjonsdel': Jordingsledning
-        'KON.13 - Elementnavn': Jordingsledning
+        'KON.11 - Konstruksjonsdel': Jordingskabel
+        'KON.13 - Elementnavn': Jordingskabel
         'KON.40 - Materialtype': Stål
         'KON.41 - Materialspesifikasjon': Rustfritt stål
         'KON.51 - Produksjonsmerknad 1': Ikke aktuelt

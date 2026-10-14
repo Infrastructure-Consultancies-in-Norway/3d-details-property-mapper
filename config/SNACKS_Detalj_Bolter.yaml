@@ -12,13 +12,25 @@ spatial_structure:
 selection:
   ifc_class: IfcElement
   exclude_name_patterns:
-    - '^Ramme$'
+    - '^Merknad$'
 
 delete_property_sets:
   - Tekla Common
   - Tekla Quantity
+  - Tekla Reinforcement - General
+  - Tekla Reinforcement - Bending List
+  - Tekla Reinforcement - End Conditions
+  - Pours
+  - BeamBaseQuantities
+  - Pset_BeamCommon
+  - ColumnBaseQuantities
+  - Pset_ColumnCommon
+  - PlateBaseQuantities
+  - Pset_PlateCommon
   - SlabBaseQuantities
   - Pset_SlabCommon
+  - WallBaseQuantities
+  - Pset_WallCommon
 
 base_property_sets:
   - BIM_Tverrfaglig
@@ -80,31 +92,31 @@ default_values:
     'FMI.41 - Antall skiver': 4
 
 rules:
-  - id: asphalt-binding-course
-    name_pattern: '^Asfaltdekker_bindlag$'
+  - id: binder-course
+    name_pattern: '^Bindlag$'
     property_sets:
       - KON_Felles
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Asfaltdekker bindlag
+        'BIM.05 - Elementnavn': Bindlag
       KON_Felles:
         'KON.11 - Konstruksjonsdel': Asfaltdekke
-        'KON.13 - Elementnavn': Asfaltdekker bindlag
+        'KON.13 - Elementnavn': Bindlag
         'KON.40 - Materialtype': Asfalt
         'KON.41 - Materialspesifikasjon': Bindlag
         'KON.51 - Produksjonsmerknad 1': Ikke aktuelt
         'KON.53 - Utførelsesmerknad 1': Ikke angitt
 
-  - id: asphalt-wearing-course
-    name_pattern: '^Asfaltdekker_slitelag$'
+  - id: wearing-course
+    name_pattern: '^Slitelag$'
     property_sets:
       - KON_Felles
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Asfaltdekker slitelag
+        'BIM.05 - Elementnavn': Slitelag
       KON_Felles:
         'KON.11 - Konstruksjonsdel': Asfaltdekke
-        'KON.13 - Elementnavn': Asfaltdekker slitelag
+        'KON.13 - Elementnavn': Slitelag
         'KON.40 - Materialtype': Asfalt
         'KON.41 - Materialspesifikasjon': Slitelag
         'KON.51 - Produksjonsmerknad 1': Ikke aktuelt
@@ -138,55 +150,56 @@ rules:
         'KON.40 - Materialtype': Betong
         'KON.41 - Materialspesifikasjon': B45 SV-Standard
 
-  - id: c60bp2-bolt
-    name_pattern: '^C60BP2$'
+  - id: edge-beam
+    name_pattern: '^Kantdrager$'
+    property_sets:
+      - KON_Betong
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Kantdrager
+      KON_Felles:
+        'KON.11 - Konstruksjonsdel': Kantdrager
+        'KON.13 - Elementnavn': Kantdrager
+        'KON.40 - Materialtype': Betong
+        'KON.41 - Materialspesifikasjon': B45 SV-Standard
+
+  - id: threaded-rod
+    name_pattern: '^Gjengestag$'
     property_sets:
       - KON_Festemidler
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': C60BP2
+        'BIM.05 - Elementnavn': Gjengestag
       KON_Felles:
-        'KON.11 - Konstruksjonsdel': Bolt
-        'KON.13 - Elementnavn': C60BP2
+        'KON.11 - Konstruksjonsdel': Gjengestag
+        'KON.13 - Elementnavn': Gjengestag
         'KON.40 - Materialtype': Stål
-        'KON.41 - Materialspesifikasjon': C60BP2
+        'KON.41 - Materialspesifikasjon': '8.8'
         'KON.51 - Produksjonsmerknad 1': Ikke aktuelt
         'KON.53 - Utførelsesmerknad 1': Ikke angitt
       KON_Festemidler:
-        'FMI.01 - Navn': C60BP2
+        'FMI.01 - Navn': Gjengestag M24
         'FMI.02 - Antall skruer': 1
+        'FMI.03 - Skruediameter': 24 mm
         'FMI.30 - Mutternavn': Ikke aktuelt
         'FMI.31 - Antall muttere': 0
         'FMI.40 - Skivenavn': Ikke aktuelt
         'FMI.41 - Antall skiver': 0
 
-  - id: end-plate
-    name_pattern: '^Endeplate$'
+  - id: steel-plate
+    name_pattern: '^Plate$'
     property_sets:
       - KON_Stål
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Endeplate
+        'BIM.05 - Elementnavn': Plate
       KON_Felles:
-        'KON.11 - Konstruksjonsdel': Endeplate
-        'KON.13 - Elementnavn': Endeplate
+        'KON.11 - Konstruksjonsdel': Plate
+        'KON.13 - Elementnavn': Plate
         'KON.40 - Materialtype': Stål
         'KON.41 - Materialspesifikasjon': S355ML
         'KON.51 - Produksjonsmerknad 1': Ikke aktuelt
         'KON.53 - Utførelsesmerknad 1': Ikke angitt
-
-  - id: edge-beam
-    name_pattern: '^Kantbjelke$'
-    property_sets:
-      - KON_Betong
-    values:
-      BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Kantbjelke
-      KON_Felles:
-        'KON.11 - Konstruksjonsdel': Kantbjelke
-        'KON.13 - Elementnavn': Kantbjelke
-        'KON.40 - Materialtype': Betong
-        'KON.41 - Materialspesifikasjon': B45 SV-Standard
 
   - id: nut
     name_pattern: '^Mutter$'
@@ -253,18 +266,32 @@ rules:
         'FMI.31 - Antall muttere': 0
         'FMI.41 - Antall skiver': 1
 
-  - id: topeka-membrane
-    name_pattern: '^Topeka$'
+  - id: membrane
+    name_pattern: '^Membran$'
     property_sets:
       - KON_Felles
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Topeka
+        'BIM.05 - Elementnavn': Membran
       KON_Felles:
         'KON.11 - Konstruksjonsdel': Fuktisolering
-        'KON.13 - Elementnavn': Topeka
+        'KON.13 - Elementnavn': Membran
         'KON.40 - Materialtype': Fuktisolering
-        'KON.41 - Materialspesifikasjon': Topeka
+        'KON.41 - Materialspesifikasjon': Ikke angitt
         'KON.51 - Produksjonsmerknad 1': Ikke aktuelt
         'KON.53 - Utførelsesmerknad 1': Ikke angitt
 
+  - id: primer
+    name_pattern: '^Primer$'
+    property_sets:
+      - KON_Felles
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Primer
+      KON_Felles:
+        'KON.11 - Konstruksjonsdel': Fuktisolering
+        'KON.13 - Elementnavn': Primer
+        'KON.40 - Materialtype': Fuktisolering
+        'KON.41 - Materialspesifikasjon': Primer
+        'KON.51 - Produksjonsmerknad 1': Ikke aktuelt
+        'KON.53 - Utførelsesmerknad 1': Ikke angitt

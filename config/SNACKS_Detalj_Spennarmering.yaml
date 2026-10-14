@@ -1,0 +1,205 @@
+version: 1.0
+
+models:
+  - SNACKS_Detalj_Spennarmering.ifc
+
+spatial_structure:
+  IfcProject: SNACKS Detalj Spennarmering
+  IfcSite: SNACKS Detalj Spennarmering
+  IfcBuilding: Bru
+  IfcBuildingStorey: Spennarmering
+
+selection:
+  ifc_class: IfcElement
+  exclude_name_patterns:
+    - '^Merknad$'
+
+delete_property_sets:
+  - Tekla Common
+  - Tekla Quantity
+  - Tekla Reinforcement - General
+  - Tekla Reinforcement - Bending List
+  - Tekla Reinforcement - End Conditions
+  - Pours
+  - BeamBaseQuantities
+  - Pset_BeamCommon
+  - ColumnBaseQuantities
+  - Pset_ColumnCommon
+  - PlateBaseQuantities
+  - Pset_PlateCommon
+  - SlabBaseQuantities
+  - Pset_SlabCommon
+  - WallBaseQuantities
+  - Pset_WallCommon
+
+base_property_sets:
+  - BIM_Tverrfaglig
+  - KON_Felles
+
+default_values:
+  BIM_Tverrfaglig:
+    'BIM.04 - MMI': '350'
+    'BIM.05 - Elementnavn': Detaljelement
+    'BIM.06 - Fag': KON
+    'BIM.07 - Revisjon': A
+    'BIM.08 - Revisjonsdato': '2023-01-16'
+
+  KON_Felles:
+    'KON.01 - Konstruksjonsnummer': K100
+    'KON.03 - Akse': '01'
+    'KON.10 - Konstruksjonsinndeling': Bru
+    'KON.11 - Konstruksjonsdel': Spennarmering
+    'KON.13 - Elementnavn': Detaljelement
+    'KON.20 - Produksjonsenhet': PLD-1002
+    'KON.30 - Plasseringsprioritet': 2 - Viker for 1
+    'KON.31 - Plasseringsmerknad': Ikke angitt
+    'KON.40 - Materialtype': Uspesifisert
+    'KON.41 - Materialspesifikasjon': Uspesifisert
+    'KON.51 - Produksjonsmerknad 1': Ikke angitt
+    'KON.53 - Utførelsesmerknad 1': Ikke angitt
+
+  KON_Spennarmering:
+    'SPA.01 - Spennenhet ID': SK-01
+    'SPA.02 - Kapasitet spennkabel, Fp0,1k [kN]': 4560
+    'SPA.03 - Oppspenningskraft før låsing [kN]': 4104
+    'SPA.04 - Maksimal initiell forspenningskraft i kabel etter låsing, P0 [kN]': 3876
+    'SPA.10 - Krav for oppspenning': Iht. NS-EN 13670 og leverandørens ETA
+    'SPA.11 - Oppspenningsrekkefølge': Iht. oppspenningsplan
+    'SPA.20 - Areal per spenntau [mm2]': 150
+    'SPA.21 - Antall spenntau i spennkabel': 19
+    'SPA.22 - Kabelkanal, diameter': Ø100 mm
+    'SPA.24 - Rettstrekk ved forankring': 1000 mm
+    'SPA.30 - Toleranse vertikalt': '±10 mm'
+    'SPA.31 - Toleranse horisontalt': '±20 mm'
+
+  KON_Armering:
+    'ARM.01 - Armeringstekst': Spiralarmering
+    'ARM.07 - Posisjonsnummer': Ikke angitt
+    'ARM.08 - Stangdiameter': 12 mm
+    'ARM.10 - Senteravstand': 0 mm
+    'ARM.13 - Plassering': Ikke angitt
+    'ARM.17 - Omfar': 0 mm
+    'ARM.19 - Antall i gruppe': 1
+    'ARM.30 - Formkode': Ikke angitt
+    'ARM.31 - BVBS': Ikke angitt
+    'ARM.32 - Endekode 1': Ikke angitt
+    'ARM.33 - Endetype 1': Ikke angitt
+    'ARM.34 - Endekode 2': Ikke angitt
+    'ARM.35 - Endetype 2': Ikke angitt
+    'ARM.36 - Materialspesifikasjon (dup)': B500NC
+    'ARM.39 - Dordiameter': 0 mm
+    'ARM.40 - A': 0 mm
+    'ARM.80 - Kapplengde': 0 mm
+    'ARM.81 - Totallengde': 0 mm
+    'ARM.83 - Vekt per jern': 0 kg
+    'ARM.84 - Vekt per gruppe': 0 kg
+
+rules:
+  - id: tendon
+    name_pattern: '^Spenntau$'
+    property_sets:
+      - KON_Spennarmering
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Spenntau
+      KON_Felles:
+        'KON.13 - Elementnavn': Spenntau
+        'KON.40 - Materialtype': Spennstål
+        'KON.41 - Materialspesifikasjon': Y1860S7
+
+  - id: active-anchor
+    name_pattern: '^Aktivt_spennanker$'
+    property_sets:
+      - KON_Spennarmering
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Aktivt spennanker
+      KON_Felles:
+        'KON.13 - Elementnavn': Aktivt spennanker
+        'KON.40 - Materialtype': Stål
+        'KON.41 - Materialspesifikasjon': Ikke angitt
+
+  - id: passive-anchor
+    name_pattern: '^Passivt_spennanker$'
+    property_sets:
+      - KON_Spennarmering
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Passivt spennanker
+      KON_Felles:
+        'KON.13 - Elementnavn': Passivt spennanker
+        'KON.40 - Materialtype': Stål
+        'KON.41 - Materialspesifikasjon': Ikke angitt
+
+  - id: active-coupler
+    name_pattern: '^Aktiv_skjøtekobling$'
+    property_sets:
+      - KON_Spennarmering
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Aktiv skjøtekobling
+      KON_Felles:
+        'KON.13 - Elementnavn': Aktiv skjøtekobling
+        'KON.40 - Materialtype': Stål
+        'KON.41 - Materialspesifikasjon': Ikke angitt
+
+  - id: passive-coupler
+    name_pattern: '^Passivt_skjøtekobling$'
+    property_sets:
+      - KON_Spennarmering
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Passiv skjøtekobling
+      KON_Felles:
+        'KON.13 - Elementnavn': Passiv skjøtekobling
+        'KON.40 - Materialtype': Stål
+        'KON.41 - Materialspesifikasjon': Ikke angitt
+
+  - id: grouting-hose
+    name_pattern: '^Injiseringsslange$'
+    property_sets:
+      - KON_Felles
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Injiseringsslange
+      KON_Felles:
+        'KON.13 - Elementnavn': Injiseringsslange
+        'KON.40 - Materialtype': Plast
+        'KON.41 - Materialspesifikasjon': Ikke angitt
+
+  - id: vent-hose
+    name_pattern: '^Lufteslange$'
+    property_sets:
+      - KON_Felles
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Lufteslange
+      KON_Felles:
+        'KON.13 - Elementnavn': Lufteslange
+        'KON.40 - Materialtype': Plast
+        'KON.41 - Materialspesifikasjon': Ikke angitt
+
+  - id: drain-hose
+    name_pattern: '^Drensslange$'
+    property_sets:
+      - KON_Felles
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Drensslange
+      KON_Felles:
+        'KON.13 - Elementnavn': Drensslange
+        'KON.40 - Materialtype': Plast
+        'KON.41 - Materialspesifikasjon': Ikke angitt
+
+  - id: spiral-reinforcement
+    name_pattern: '^Spiralarmering$'
+    property_sets:
+      - KON_Armering
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Spiralarmering
+      KON_Felles:
+        'KON.11 - Konstruksjonsdel': Armering
+        'KON.13 - Elementnavn': Spiralarmering
+        'KON.40 - Materialtype': Armeringsstål
+        'KON.41 - Materialspesifikasjon': B500NC

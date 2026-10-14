@@ -3,13 +3,28 @@ from pathlib import Path
 import ifcopenshell
 
 from property_mapper.catalog import CatalogProperty, CatalogPropertySet, parse_catalog
-from property_mapper.config import load_config, parse_config
+from property_mapper.config import config_for_model, load_config, load_configs, parse_config
 from property_mapper.ifc_mapper import apply_mapping, direct_property_sets
 from property_mapper.runner import process_file
 
 ROOT = Path(__file__).parents[1]
 INPUT = ROOT / "ifc-files" / "input" / "SNACKS_Detalj_Bolter.ifc"
 CONFIG = ROOT / "config" / "SNACKS_Detalj_Bolter.yaml"
+
+
+def test_every_input_element_matches_a_rule() -> None:
+    configs = load_configs(ROOT / "config")
+    unmatched: dict[str, set[str]] = {}
+    for input_path in sorted((ROOT / "ifc-files" / "input").glob("*.ifc")):
+        config = config_for_model(configs, input_path.name)
+        for element in ifcopenshell.open(input_path).by_type(config.ifc_class):
+            name = element.Name or ""
+            if any(pattern.fullmatch(name) for pattern in config.exclude_name_patterns):
+                continue
+            if not any(rule.name_pattern.fullmatch(name) for rule in config.rules):
+                unmatched.setdefault(input_path.name, set()).add(name)
+
+    assert unmatched == {}
 
 
 def _catalog_data(config) -> list[dict[str, object]]:
@@ -54,26 +69,26 @@ def test_process_real_fixture_and_rerun_idempotently(tmp_path: Path) -> None:
         for property_set in direct_property_sets(element, set_name)
     }
 
-    assert first.selected_elements == 66
+    assert first.selected_elements == 58
     assert first.excluded_elements == 3
-    assert first.created_property_sets == 190
+    assert first.created_property_sets == 164
     assert first.assignments == {
-        "BIM_Tverrfaglig": 66,
-        "KON_Felles": 66,
-        "KON_Festemidler": 43,
+        "BIM_Tverrfaglig": 58,
+        "KON_Felles": 58,
+        "KON_Festemidler": 41,
         "KON_Betong": 4,
-        "KON_Stål": 11,
+        "KON_Stål": 3,
     }
-    assert len(first_model.by_type("IfcElement")) == 69
+    assert len(first_model.by_type("IfcElement")) == 61
     assert first_model.by_type("IfcProject")[0].Name == "SNACKS Detalj Bolter"
     assert first_model.by_type("IfcSite")[0].Name == "SNACKS Detalj Bolter"
     assert first_model.by_type("IfcBuilding")[0].Name == "Bru"
     assert first_model.by_type("IfcBuildingStorey")[0].Name == "Bolter"
-    assert _assignment_count(first_model, "BIM_Tverrfaglig") == 66
-    assert _assignment_count(first_model, "KON_Felles") == 66
-    assert _assignment_count(first_model, "KON_Festemidler") == 43
+    assert _assignment_count(first_model, "BIM_Tverrfaglig") == 58
+    assert _assignment_count(first_model, "KON_Felles") == 58
+    assert _assignment_count(first_model, "KON_Festemidler") == 41
     assert _assignment_count(first_model, "KON_Betong") == 4
-    assert _assignment_count(first_model, "KON_Stål") == 11
+    assert _assignment_count(first_model, "KON_Stål") == 3
     bolt_group = next(
         element for element in first_model.by_type("IfcElement") if element.Name == "Boltegruppe"
     )
@@ -82,10 +97,18 @@ def test_process_real_fixture_and_rerun_idempotently(tmp_path: Path) -> None:
         element for element in first_model.by_type("IfcElement") if element.Name == "Bruplate"
     )
     assert direct_property_sets(bridge_deck, "KON_Betong")
-    frame = next(
-        element for element in first_model.by_type("IfcElement") if element.Name == "Ramme"
+    annotation = next(
+        element for element in first_model.by_type("IfcElement") if element.Name == "Merknad"
     )
-    assert all(not direct_property_sets(frame, name) for name in config.referenced_property_sets)
+    assert all(
+        not direct_property_sets(annotation, name) for name in config.referenced_property_sets
+    )
+    assert not any(
+        direct_property_sets(element, name)
+        for element in first_model.by_type("IfcElement")
+        if element.Name != "Merknad"
+        for name in config.delete_property_sets
+    )
     assert all(
         property_set.OwnerHistory is not None
         for property_set in first_model.by_type("IfcPropertySet")
@@ -96,7 +119,7 @@ def test_process_real_fixture_and_rerun_idempotently(tmp_path: Path) -> None:
     second_model = ifcopenshell.open(second_output)
 
     assert second.created_property_sets == 0
-    assert second.updated_property_sets == 190
+    assert second.updated_property_sets == 164
     assert {
         (element.GlobalId, property_set.Name): property_set.GlobalId
         for element in second_model.by_type("IfcElement")

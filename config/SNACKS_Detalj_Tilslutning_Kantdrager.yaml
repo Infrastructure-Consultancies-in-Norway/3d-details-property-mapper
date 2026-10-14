@@ -1,0 +1,148 @@
+version: 1.0
+
+models:
+  - SNACKS_Detalj_Tilslutning_Kantdrager.ifc
+
+spatial_structure:
+  IfcProject: SNACKS Detalj Tilslutning Kantdrager
+  IfcSite: SNACKS Detalj Tilslutning Kantdrager
+  IfcBuilding: Bru
+  IfcBuildingStorey: Tilslutning Kantdrager
+
+selection:
+  ifc_class: IfcElement
+  exclude_name_patterns:
+    - '^Merknad$'
+
+delete_property_sets:
+  - Tekla Common
+  - Tekla Quantity
+  - Tekla Reinforcement - General
+  - Tekla Reinforcement - Bending List
+  - Tekla Reinforcement - End Conditions
+  - Pours
+  - BeamBaseQuantities
+  - Pset_BeamCommon
+  - ColumnBaseQuantities
+  - Pset_ColumnCommon
+  - PlateBaseQuantities
+  - Pset_PlateCommon
+  - SlabBaseQuantities
+  - Pset_SlabCommon
+  - WallBaseQuantities
+  - Pset_WallCommon
+
+base_property_sets:
+  - BIM_Tverrfaglig
+  - KON_Felles
+
+default_values:
+  BIM_Tverrfaglig:
+    'BIM.04 - MMI': '350'
+    'BIM.05 - Elementnavn': Detaljelement
+    'BIM.06 - Fag': KON
+    'BIM.07 - Revisjon': A
+    'BIM.08 - Revisjonsdato': '2023-01-16'
+
+  KON_Felles:
+    'KON.01 - Konstruksjonsnummer': K100
+    'KON.03 - Akse': '01'
+    'KON.10 - Konstruksjonsinndeling': Bru
+    'KON.11 - Konstruksjonsdel': Kantdragerdetalj
+    'KON.13 - Elementnavn': Detaljelement
+    'KON.20 - Produksjonsenhet': PLD-1002
+    'KON.30 - Plasseringsprioritet': 2 - Viker for 1
+    'KON.31 - Plasseringsmerknad': Ikke angitt
+    'KON.40 - Materialtype': Uspesifisert
+    'KON.41 - Materialspesifikasjon': Uspesifisert
+    'KON.51 - Produksjonsmerknad 1': Ikke angitt
+    'KON.53 - Utførelsesmerknad 1': Ikke angitt
+
+  KON_Betong:
+    'BET.01 - Utførelsesklasse': '2'
+    'BET.02 - Nøyaktighetsklasse': B
+    'BET.04 - Materialspesifikasjon (dup)': B45 SV-Standard
+    'BET.10 - Produksjonsmetode': Plasstøpt
+    'BET.11 - Forskaling': Stående bord
+    'BET.21 - Overdekning hovedarmering': 'UK, NS og FS: 75mm ±15mm, OK: 65mm ±15mm'
+    'BET.30 - Diameter monteringsstenger': 12 mm
+    'BET.31 - Overdekning monteringsstenger': 'UK, NS og FS: 60mm ±5mm, OK: 50mm ±5mm'
+
+rules:
+  - id: binder-course
+    name_pattern: '^Bindlag$'
+    property_sets:
+      - KON_Felles
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Bindlag
+      KON_Felles:
+        'KON.11 - Konstruksjonsdel': Asfaltdekke
+        'KON.13 - Elementnavn': Bindlag
+        'KON.40 - Materialtype': Asfalt
+        'KON.41 - Materialspesifikasjon': Bindlag
+
+  - id: wearing-course
+    name_pattern: '^Slitelag$'
+    property_sets:
+      - KON_Felles
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Slitelag
+      KON_Felles:
+        'KON.11 - Konstruksjonsdel': Asfaltdekke
+        'KON.13 - Elementnavn': Slitelag
+        'KON.40 - Materialtype': Asfalt
+        'KON.41 - Materialspesifikasjon': Slitelag
+
+  - id: membrane
+    name_pattern: '^Membran$'
+    property_sets:
+      - KON_Felles
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Membran
+      KON_Felles:
+        'KON.11 - Konstruksjonsdel': Fuktisolering
+        'KON.13 - Elementnavn': Membran
+        'KON.40 - Materialtype': Fuktisolering
+        'KON.41 - Materialspesifikasjon': Ikke angitt
+
+  - id: primer
+    name_pattern: '^Primer$'
+    property_sets:
+      - KON_Felles
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Primer
+      KON_Felles:
+        'KON.11 - Konstruksjonsdel': Fuktisolering
+        'KON.13 - Elementnavn': Primer
+        'KON.40 - Materialtype': Fuktisolering
+        'KON.41 - Materialspesifikasjon': Primer
+
+  - id: bridge-deck
+    name_pattern: '^Bruplate$'
+    property_sets:
+      - KON_Betong
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Bruplate
+      KON_Felles:
+        'KON.11 - Konstruksjonsdel': Bruplate
+        'KON.13 - Elementnavn': Bruplate
+        'KON.40 - Materialtype': Betong
+        'KON.41 - Materialspesifikasjon': B45 SV-Standard
+
+  - id: edge-beam
+    name_pattern: '^Kantdrager$'
+    property_sets:
+      - KON_Betong
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Kantdrager
+      KON_Felles:
+        'KON.11 - Konstruksjonsdel': Kantdrager
+        'KON.13 - Elementnavn': Kantdrager
+        'KON.40 - Materialtype': Betong
+        'KON.41 - Materialspesifikasjon': B45 SV-Standard

@@ -12,19 +12,25 @@ spatial_structure:
 selection:
   ifc_class: IfcElement
   exclude_name_patterns:
-    - '^Ramme$'
-    - '^Midlertidig_stålrør$'
+    - '^Merknad$'
 
 delete_property_sets:
   - Tekla Common
   - Tekla Quantity
+  - Tekla Reinforcement - General
+  - Tekla Reinforcement - Bending List
+  - Tekla Reinforcement - End Conditions
+  - Pours
+  - BeamBaseQuantities
+  - Pset_BeamCommon
+  - ColumnBaseQuantities
+  - Pset_ColumnCommon
+  - PlateBaseQuantities
+  - Pset_PlateCommon
   - SlabBaseQuantities
   - Pset_SlabCommon
-  - BeamBaseQuantities
-  - ColumnBaseQuantities
-  - Pours
-  - Pset_BeamCommon
-  - Pset_ColumnCommon
+  - WallBaseQuantities
+  - Pset_WallCommon
 
 base_property_sets:
   - BIM_Tverrfaglig
@@ -61,6 +67,15 @@ default_values:
     'BET.21 - Overdekning hovedarmering': 'UK, NS og FS: 75mm ±15mm, OK: 65mm ±15mm'
     'BET.30 - Diameter monteringsstenger': 12 mm
     'BET.31 - Overdekning monteringsstenger': 'UK, NS og FS: 60mm ±5mm, OK: 50mm ±5mm'
+
+  KON_Stål:
+    'STL.01 - Utførelsesklasse': EXC1
+    'STL.02 - Tilvirkningstoleranse': '1'
+    'STL.03 - Monteringstoleranse': '1'
+    'STL.11 - Farge på siste dekkestrøk': Ikke aktuelt
+    'STL.31 - Materialspesifikasjon (dup)': DX51D+Z275
+    'STL.32 - Materialstandard': NS-EN 10346
+    'STL.50 - Korrosjonsbeskyttelse': Sendzimirforsinket Z275
 
   KON_Lager:
     'LGR.01 - Lager-ID': LGR-001
@@ -109,16 +124,16 @@ rules:
         'KON.40 - Materialtype': Betong
         'KON.41 - Materialspesifikasjon': B45 SV-Standard
 
-  - id: bearing-mortar
-    name_pattern: '^Mørtel$'
+  - id: structural-underpour
+    name_pattern: '^Konstruktiv_understøp$'
     property_sets:
       - KON_Felles
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Mørtel
+        'BIM.05 - Elementnavn': Konstruktiv understøp
       KON_Felles:
         'KON.11 - Konstruksjonsdel': Lagerunderstøp
-        'KON.13 - Elementnavn': Mørtel
+        'KON.13 - Elementnavn': Konstruktiv understøp
         'KON.40 - Materialtype': Mørtel
         'KON.41 - Materialspesifikasjon': Ikke angitt
 
@@ -136,3 +151,16 @@ rules:
         'KON.41 - Materialspesifikasjon': Ikke angitt
       KON_Lager:
         'LGR.01 - Lager-ID': Lager
+
+  - id: spiral-seamed-steel-pipe
+    name_pattern: '^Spiralfalset_stålrør$'
+    property_sets:
+      - KON_Stål
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Spiralfalset stålrør
+      KON_Felles:
+        'KON.11 - Konstruksjonsdel': Spiralfalset stålrør
+        'KON.13 - Elementnavn': Spiralfalset stålrør
+        'KON.40 - Materialtype': Stål
+        'KON.41 - Materialspesifikasjon': DX51D+Z275

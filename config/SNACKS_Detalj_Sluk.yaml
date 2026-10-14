@@ -12,13 +12,25 @@ spatial_structure:
 selection:
   ifc_class: IfcElement
   exclude_name_patterns:
-    - '^Ramme$'
+    - '^Merknad$'
 
 delete_property_sets:
   - Tekla Common
   - Tekla Quantity
+  - Tekla Reinforcement - General
+  - Tekla Reinforcement - Bending List
+  - Tekla Reinforcement - End Conditions
+  - Pours
+  - BeamBaseQuantities
+  - Pset_BeamCommon
+  - ColumnBaseQuantities
+  - Pset_ColumnCommon
+  - PlateBaseQuantities
+  - Pset_PlateCommon
   - SlabBaseQuantities
   - Pset_SlabCommon
+  - WallBaseQuantities
+  - Pset_WallCommon
 
 base_property_sets:
   - BIM_Tverrfaglig
@@ -56,46 +68,32 @@ default_values:
     'BET.30 - Diameter monteringsstenger': 12 mm
     'BET.31 - Overdekning monteringsstenger': 'UK, NS og FS: 60mm ±5mm, OK: 50mm ±5mm'
 
-  KON_Festemidler:
-    'FMI.01 - Navn': C60BP2
-    'FMI.02 - Antall skruer': 1
-    'FMI.03 - Skruediameter': 20 mm
-    'FMI.04 - Skruelengde': 100 mm
-    'FMI.05 - Kvalitet': '8.8'
-    'FMI.06 - Monteringssted': Byggeplass
-    'FMI.10 - Hulldiameter': 22 mm
-    'FMI.11 - Hullmerknad': Ikke angitt
-    'FMI.30 - Mutternavn': Ikke aktuelt
-    'FMI.31 - Antall muttere': 0
-    'FMI.40 - Skivenavn': Ikke aktuelt
-    'FMI.41 - Antall skiver': 0
-
 rules:
-  - id: c60bp2-bolt
-    name_pattern: '^C60BP2$'
-    property_sets:
-      - KON_Festemidler
-    values:
-      BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': C60BP2
-      KON_Felles:
-        'KON.11 - Konstruksjonsdel': Bolt
-        'KON.13 - Elementnavn': C60BP2
-        'KON.40 - Materialtype': Stål
-        'KON.41 - Materialspesifikasjon': C60BP2
-
-  - id: topeka-membrane
-    name_pattern: '^Topeka$'
+  - id: membrane
+    name_pattern: '^Membran$'
     property_sets:
       - KON_Felles
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Topeka
+        'BIM.05 - Elementnavn': Membran
       KON_Felles:
         'KON.11 - Konstruksjonsdel': Fuktisolering
-        'KON.13 - Elementnavn': Topeka
+        'KON.13 - Elementnavn': Membran
         'KON.40 - Materialtype': Fuktisolering
-        'KON.41 - Materialspesifikasjon': Topeka
+        'KON.41 - Materialspesifikasjon': Ikke angitt
+
+  - id: primer
+    name_pattern: '^Primer$'
+    property_sets:
+      - KON_Felles
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Primer
+      KON_Felles:
+        'KON.11 - Konstruksjonsdel': Fuktisolering
+        'KON.13 - Elementnavn': Primer
+        'KON.40 - Materialtype': Fuktisolering
+        'KON.41 - Materialspesifikasjon': Primer
 
   - id: drain
     name_pattern: '^Sluk$'
@@ -111,41 +109,41 @@ rules:
         'KON.41 - Materialspesifikasjon': Ikke angitt
 
   - id: drain-pipe
-    name_pattern: '^Avløpsrør$'
+    name_pattern: '^Overvannsrør$'
     property_sets:
       - KON_Felles
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Avløpsrør
+        'BIM.05 - Elementnavn': Overvannsrør
       KON_Felles:
-        'KON.11 - Konstruksjonsdel': Avløpsrør
-        'KON.13 - Elementnavn': Avløpsrør
+        'KON.11 - Konstruksjonsdel': Overvannsrør
+        'KON.13 - Elementnavn': Overvannsrør
         'KON.40 - Materialtype': Rør
         'KON.41 - Materialspesifikasjon': Ikke angitt
 
-  - id: asphalt-binding-course
-    name_pattern: '^Asfaltdekker_bindlag$'
+  - id: binder-course
+    name_pattern: '^Bindlag$'
     property_sets:
       - KON_Felles
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Asfaltdekker bindlag
+        'BIM.05 - Elementnavn': Bindlag
       KON_Felles:
         'KON.11 - Konstruksjonsdel': Asfaltdekke
-        'KON.13 - Elementnavn': Asfaltdekker bindlag
+        'KON.13 - Elementnavn': Bindlag
         'KON.40 - Materialtype': Asfalt
         'KON.41 - Materialspesifikasjon': Bindlag
 
-  - id: asphalt-wearing-course
-    name_pattern: '^Asfaltdekker_slitelag$'
+  - id: wearing-course
+    name_pattern: '^Slitelag$'
     property_sets:
       - KON_Felles
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Asfaltdekker slitelag
+        'BIM.05 - Elementnavn': Slitelag
       KON_Felles:
         'KON.11 - Konstruksjonsdel': Asfaltdekke
-        'KON.13 - Elementnavn': Asfaltdekker slitelag
+        'KON.13 - Elementnavn': Slitelag
         'KON.40 - Materialtype': Asfalt
         'KON.41 - Materialspesifikasjon': Slitelag
 
@@ -163,14 +161,14 @@ rules:
         'KON.41 - Materialspesifikasjon': B45 SV-Standard
 
   - id: edge-beam
-    name_pattern: '^Kantbjelke$'
+    name_pattern: '^Kantdrager$'
     property_sets:
       - KON_Betong
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Kantbjelke
+        'BIM.05 - Elementnavn': Kantdrager
       KON_Felles:
-        'KON.11 - Konstruksjonsdel': Kantbjelke
-        'KON.13 - Elementnavn': Kantbjelke
+        'KON.11 - Konstruksjonsdel': Kantdrager
+        'KON.13 - Elementnavn': Kantdrager
         'KON.40 - Materialtype': Betong
         'KON.41 - Materialspesifikasjon': B45 SV-Standard

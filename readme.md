@@ -75,28 +75,33 @@ En enkelt fil og en annen output kan angis eksplisitt:
 
 ## Mapping
 
-Reglene ligger i `config/mapping.yaml` og matcher dekodet IFC-elementnavn med
-case-insensitive regex.
+Reglene ligger i én YAML-fil per modell i `config/` (for eksempel
+`config/SNACKS_Detalj_Overgangsplate.yaml`), og hver fil angir hvilke modeller den
+gjelder under `models`. Reglene matcher dekodet IFC-elementnavn med
+case-insensitive regex. Alle inputfiler må ha en konfigurasjon, og alle
+elementer som ikke er ekskludert bør treffe en regel.
 
-Alle `IfcElement`-forekomster unntatt `Ramme` får som utgangspunkt:
+Alle `IfcElement`-forekomster unntatt merknadsobjektene `Merknad` får som
+utgangspunkt:
 
 - `BIM_Tverrfaglig`
 - `KON_Felles`
 
-Følgende navn får i tillegg et fagsett:
+I overgangsplatedetaljen får følgende navn i tillegg et fagsett:
 
 | Navn | Egenskapssett |
 | --- | --- |
-| `Løsmasser_1`, `Løsmasser_2` | `KON_Løsmasser` |
-| `Armering_Rustfritt` | `KON_Armering` |
+| `Tilbakefylling` | `KON_Løsmasser` |
+| `Armering` | `KON_Armering` |
 | `Landkar`, `Overgangsplate` | `KON_Betong` |
+| `Fuge` | `KON_Fuger` |
 
-En regel kan fjerne et basissett med `exclude_property_sets`. Løsmasser beholder
-`BIM_Tverrfaglig`, men får `KON_Løsmasser` i stedet for `KON_Felles`:
+En regel kan fjerne et basissett med `exclude_property_sets`. Tilbakefylling
+beholder `BIM_Tverrfaglig`, men får `KON_Løsmasser` i stedet for `KON_Felles`:
 
 ```yaml
-- id: loose-materials
-	name_pattern: '^Løsmasser_[12]$'
+- id: backfill
+	name_pattern: '^Tilbakefylling$'
 	property_sets:
 		- KON_Løsmasser
 	exclude_property_sets:
@@ -106,8 +111,8 @@ En regel kan fjerne et basissett med `exclude_property_sets`. Løsmasser beholde
 Eksisterende direkte egenskapssett fra IFC-filen kan fjernes med
 `delete_property_sets`. På toppnivå gjelder dette alle valgte elementer, og inne
 i en regel gjelder det bare elementer som matcher regelen. Dette brukes for å
-rydde bort visningsstøy som `Tekla Common`, `Tekla Quantity`,
-`SlabBaseQuantities` og `Pset_SlabCommon` før SNACKS-settene skrives:
+rydde bort visningsstøy som `Tekla Common`, `Tekla Quantity`, `Pours`,
+`*BaseQuantities` og `Pset_*Common` før SNACKS-settene skrives:
 
 ```yaml
 delete_property_sets:
@@ -125,9 +130,9 @@ rules:
 			- Vendor_Foundation_Pset
 ```
 
-Objekter som asfalt, fuktisolering, kleber og rissanvisende fuge får foreløpig
-bare de to felles settene fordi SNACKS-katalogen ikke har passende fagsett for
-disse.
+Objekter som asfalt (`Bindlag`, `Slitelag`), fuktisolering (`Membran`, `Primer`)
+og slanger får foreløpig bare de to felles settene fordi SNACKS-katalogen ikke
+har passende fagsett for disse.
 
 Verdier kan overstyres i samme konfigurasjon. `default_values` gjelder alle
 elementer som får det angitte basissettet, mens `rules[].values` bare gjelder
@@ -178,15 +183,16 @@ Eksisterende direkte SNACKS-sett oppdateres. De dupliseres ikke ved gjentatt
 kjøring. Typebaserte egenskapssett regnes ikke som direkte occurrence-sett.
 
 Output skrives først til en midlertidig fil, åpnes på nytt og valideres før den
-erstatter endelig output. For eksempelmodellen forventes:
+erstatter endelig output. For overgangsplatemodellen forventes:
 
 | Egenskapssett | Antall elementer |
 | --- | ---: |
-| `BIM_Tverrfaglig` | 18 |
-| `KON_Felles` | 15 |
-| `KON_Løsmasser` | 3 |
-| `KON_Armering` | 1 |
+| `BIM_Tverrfaglig` | 19 |
+| `KON_Felles` | 17 |
+| `KON_Løsmasser` | 2 |
+| `KON_Armering` | 2 |
 | `KON_Betong` | 2 |
+| `KON_Fuger` | 1 |
 
 ## Utvikling
 

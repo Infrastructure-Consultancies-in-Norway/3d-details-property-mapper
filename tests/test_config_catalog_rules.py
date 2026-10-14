@@ -18,8 +18,8 @@ CONFIG_PATH = Path(__file__).parents[1] / "config" / "SNACKS_Detalj_Bolter.yaml"
 def test_mapping_for_fixture_names() -> None:
     config = load_config(CONFIG_PATH)
 
-    assert property_sets_for_name("Ramme", config) == ()
-    assert property_sets_for_name("ramme", config) == ()
+    assert property_sets_for_name("Merknad", config) == ()
+    assert property_sets_for_name("merknad", config) == ()
     assert config.spatial_structure == {
         "IfcProject": "SNACKS Detalj Bolter",
         "IfcSite": "SNACKS Detalj Bolter",
@@ -41,9 +41,14 @@ def test_mapping_for_fixture_names() -> None:
         "KON_Felles",
         "KON_Stål",
     )
-    assert property_sets_for_name("Topeka", config) == (
+    assert property_sets_for_name("Membran", config) == (
         "BIM_Tverrfaglig",
         "KON_Felles",
+    )
+    assert property_sets_for_name("Gjengestag", config) == (
+        "BIM_Tverrfaglig",
+        "KON_Felles",
+        "KON_Festemidler",
     )
 
 

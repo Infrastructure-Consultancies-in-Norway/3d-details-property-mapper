@@ -12,14 +12,25 @@ spatial_structure:
 selection:
   ifc_class: IfcElement
   exclude_name_patterns:
-    - '^Ramme$'
-    - '^Gjennomsiktig$'
+    - '^Merknad$'
 
 delete_property_sets:
   - Tekla Common
   - Tekla Quantity
+  - Tekla Reinforcement - General
+  - Tekla Reinforcement - Bending List
+  - Tekla Reinforcement - End Conditions
+  - Pours
+  - BeamBaseQuantities
+  - Pset_BeamCommon
+  - ColumnBaseQuantities
+  - Pset_ColumnCommon
+  - PlateBaseQuantities
+  - Pset_PlateCommon
   - SlabBaseQuantities
   - Pset_SlabCommon
+  - WallBaseQuantities
+  - Pset_WallCommon
 
 base_property_sets:
   - BIM_Tverrfaglig
@@ -53,16 +64,16 @@ default_values:
     'BET.04 - Materialspesifikasjon (dup)': B45 SV-Standard
     'BET.10 - Produksjonsmetode': Plasstøpt
     'BET.11 - Forskaling': Stående bord
-    'BET.21 - Overdekning hovedarmering': 'UK, NS og FS: 75mm ±15mm, OK: 65mm ±15mm'
+    'BET.21 - Overdekning hovedarmering': 'Alle flater: 65mm ±15mm'
     'BET.30 - Diameter monteringsstenger': 12 mm
-    'BET.31 - Overdekning monteringsstenger': 'UK, NS og FS: 60mm ±5mm, OK: 50mm ±5mm'
+    'BET.31 - Overdekning monteringsstenger': 'Alle flater: 50mm ±5mm'
 
   KON_Armering:
-    'ARM.01 - Armeringstekst': Rustfri armering
+    'ARM.01 - Armeringstekst': ø12c150 rustfritt stål
     'ARM.07 - Posisjonsnummer': Ikke angitt
     'ARM.08 - Stangdiameter': 12 mm
-    'ARM.10 - Senteravstand': 0 mm
-    'ARM.13 - Plassering': Ikke angitt
+    'ARM.10 - Senteravstand': 150 mm
+    'ARM.13 - Plassering': Forankring vegg/overgangsplate gjennom krympeplast
     'ARM.17 - Omfar': 0 mm
     'ARM.19 - Antall i gruppe': 1
     'ARM.30 - Formkode': Ikke angitt
@@ -71,13 +82,13 @@ default_values:
     'ARM.33 - Endetype 1': Ikke angitt
     'ARM.34 - Endekode 2': Ikke angitt
     'ARM.35 - Endetype 2': Ikke angitt
-    'ARM.36 - Materialspesifikasjon (dup)': Rustfritt stål
+    'ARM.36 - Materialspesifikasjon (dup)': B500NCR iht. NS 3576-5, rustfritt stål 1.4362 eller 1.4401 iht. NS-EN 10088
     'ARM.39 - Dordiameter': 0 mm
     'ARM.40 - A': 0 mm
     'ARM.80 - Kapplengde': 0 mm
     'ARM.81 - Totallengde': 0 mm
-    'ARM.83 - Vekt per jern': 0 kg
-    'ARM.84 - Vekt per gruppe': 0 kg
+    'ARM.83 - Vekt per jern': 1.2 kg
+    'ARM.84 - Vekt per gruppe': 1.2 kg
 
   KON_Løsmasser:
     'LSM.01 - Materialspesifikasjon (dup)': Løsmasser
@@ -90,57 +101,57 @@ default_values:
     'FUG.02 - Bevegelseskapasitet': Ikke angitt
 
 rules:
-  - id: loose-materials
-    name_pattern: '^Løsmasser_[12]$'
+  - id: backfill
+    name_pattern: '^Tilbakefylling$'
     property_sets:
       - KON_Løsmasser
     exclude_property_sets:
       - KON_Felles
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Løsmasser
+        'BIM.05 - Elementnavn': Tilbakefylling
 
   - id: reinforcement
-    name_pattern: '^Armering_Rustfritt$'
+    name_pattern: '^Armering$'
     property_sets:
       - KON_Armering
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Armering rustfritt
+        'BIM.05 - Elementnavn': Armering
       KON_Felles:
         'KON.11 - Konstruksjonsdel': Armering
-        'KON.13 - Elementnavn': Armering rustfritt
+        'KON.13 - Elementnavn': Armering
         'KON.40 - Materialtype': Rustfritt stål
-        'KON.41 - Materialspesifikasjon': Rustfritt stål
+        'KON.41 - Materialspesifikasjon': B500NCR
 
-  - id: asphalt-binding-course
-    name_pattern: '^Asfaltdekker_bindlag$'
+  - id: binder-course
+    name_pattern: '^Bindlag$'
     property_sets:
       - KON_Felles
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Asfaltdekker bindlag
+        'BIM.05 - Elementnavn': Bindlag
       KON_Felles:
         'KON.11 - Konstruksjonsdel': Asfaltdekke
-        'KON.13 - Elementnavn': Asfaltdekker bindlag
+        'KON.13 - Elementnavn': Bindlag
         'KON.40 - Materialtype': Asfalt
         'KON.41 - Materialspesifikasjon': Bindlag
 
-  - id: asphalt-wearing-course
-    name_pattern: '^Asfaltdekker_slitelag$'
+  - id: wearing-course
+    name_pattern: '^Slitelag$'
     property_sets:
       - KON_Felles
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Asfaltdekker slitelag
+        'BIM.05 - Elementnavn': Slitelag
       KON_Felles:
         'KON.11 - Konstruksjonsdel': Asfaltdekke
-        'KON.13 - Elementnavn': Asfaltdekker slitelag
+        'KON.13 - Elementnavn': Slitelag
         'KON.40 - Materialtype': Asfalt
         'KON.41 - Materialspesifikasjon': Slitelag
 
   - id: membrane
-    name_pattern: '^(Fuktisolering_\(A3-[24]\)|Asfaltmembran|Bitumenbasert_hulkil|Kleber|Krympeplast)$'
+    name_pattern: '^(Membran|Hulkil|Primer|Krympeplast)$'
     property_sets:
       - KON_Felles
     values:
@@ -150,6 +161,32 @@ rules:
         'KON.11 - Konstruksjonsdel': Fuktisolering
         'KON.13 - Elementnavn': Fuktisolering
         'KON.40 - Materialtype': Fuktisolering
+        'KON.41 - Materialspesifikasjon': Ikke angitt
+
+  - id: membrane-protection
+    name_pattern: '^Beskyttelseslag_for_membran$'
+    property_sets:
+      - KON_Felles
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Beskyttelseslag for membran
+      KON_Felles:
+        'KON.11 - Konstruksjonsdel': Fuktisolering
+        'KON.13 - Elementnavn': Beskyttelseslag for membran
+        'KON.40 - Materialtype': Uspesifisert
+        'KON.41 - Materialspesifikasjon': Ikke angitt
+
+  - id: leveling-layer
+    name_pattern: '^Avrettingslag$'
+    property_sets:
+      - KON_Felles
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Avrettingslag
+      KON_Felles:
+        'KON.11 - Konstruksjonsdel': Avrettingslag
+        'KON.13 - Elementnavn': Avrettingslag
+        'KON.40 - Materialtype': Uspesifisert
         'KON.41 - Materialspesifikasjon': Ikke angitt
 
   - id: transition-slab
@@ -181,27 +218,27 @@ rules:
         'KON.41 - Materialspesifikasjon': B45 SV-Standard
 
   - id: joint
-    name_pattern: '^Rissanvisende_fuge$'
+    name_pattern: '^Fuge$'
     property_sets:
       - KON_Fuger
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Rissanvisende fuge
+        'BIM.05 - Elementnavn': Fuge
       KON_Felles:
         'KON.11 - Konstruksjonsdel': Fuge
-        'KON.13 - Elementnavn': Rissanvisende fuge
+        'KON.13 - Elementnavn': Fuge
         'KON.40 - Materialtype': Fuge
         'KON.41 - Materialspesifikasjon': Ikke angitt
 
-  - id: triangular-strip
-    name_pattern: '^Trekantlist$'
+  - id: triangular-profile
+    name_pattern: '^Trekantprofil$'
     property_sets:
       - KON_Felles
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Trekantlist
+        'BIM.05 - Elementnavn': Trekantprofil
       KON_Felles:
-        'KON.11 - Konstruksjonsdel': Trekantlist
-        'KON.13 - Elementnavn': Trekantlist
+        'KON.11 - Konstruksjonsdel': Trekantprofil
+        'KON.13 - Elementnavn': Trekantprofil
         'KON.40 - Materialtype': Uspesifisert
         'KON.41 - Materialspesifikasjon': Ikke angitt

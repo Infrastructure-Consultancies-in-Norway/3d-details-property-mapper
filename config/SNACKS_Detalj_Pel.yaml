@@ -12,16 +12,25 @@ spatial_structure:
 selection:
   ifc_class: IfcElement
   exclude_name_patterns:
-    - '^Ramme$'
+    - '^Merknad$'
 
 delete_property_sets:
   - Tekla Common
   - Tekla Quantity
+  - Tekla Reinforcement - General
+  - Tekla Reinforcement - Bending List
+  - Tekla Reinforcement - End Conditions
+  - Pours
+  - BeamBaseQuantities
+  - Pset_BeamCommon
+  - ColumnBaseQuantities
+  - Pset_ColumnCommon
+  - PlateBaseQuantities
+  - Pset_PlateCommon
   - SlabBaseQuantities
   - Pset_SlabCommon
-  - BeamBaseQuantities
-  - Pours
-  - Pset_BeamCommon
+  - WallBaseQuantities
+  - Pset_WallCommon
 
 base_property_sets:
   - BIM_Tverrfaglig
@@ -68,12 +77,6 @@ default_values:
     'STL.32 - Materialstandard': NS-EN 10025-4
     'STL.50 - Korrosjonsbeskyttelse': System 1 iht. SVV hb. N400 pkt. 9.2.1
 
-  KON_Løsmasser:
-    'LSM.01 - Materialspesifikasjon (dup)': Løsmasser
-    'LSM.02 - Lagtykkelse': Ikke angitt
-    'LSM.03 - Komprimering': Ikke angitt
-    'LSM.04 - Løsmassemerknad krav': Ikke angitt
-
   KON_Peler:
     'PEL.01 - Pel-ID': Pel
     'PEL.02 - Belastningtype': Trykk
@@ -86,16 +89,6 @@ default_values:
     'PEL.22 - Helningstoleranse [%]': 0
 
 rules:
-  - id: loose-materials
-    name_pattern: '^Løsmasser_[12]$'
-    property_sets:
-      - KON_Løsmasser
-    exclude_property_sets:
-      - KON_Felles
-    values:
-      BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Løsmasser
-
   - id: foundation
     name_pattern: '^Fundament$'
     property_sets:
@@ -110,20 +103,48 @@ rules:
         'KON.40 - Materialtype': Betong
         'KON.41 - Materialspesifikasjon': B45 SV-Standard
 
+  - id: concrete-leveling
+    name_pattern: '^Betongavretting$'
+    property_sets:
+      - KON_Betong
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Betongavretting
+      KON_Felles:
+        'KON.11 - Konstruksjonsdel': Betongavretting
+        'KON.13 - Elementnavn': Betongavretting
+        'KON.40 - Materialtype': Betong
+        'KON.41 - Materialspesifikasjon': B45 SV-Standard
+        'KON.10 - Konstruksjonsinndeling': Underbygning
+
+  - id: leveling-layer
+    name_pattern: '^Avrettingslag$'
+    property_sets:
+      - KON_Felles
+    values:
+      BIM_Tverrfaglig:
+        'BIM.05 - Elementnavn': Avrettingslag
+      KON_Felles:
+        'KON.11 - Konstruksjonsdel': Avrettingslag
+        'KON.13 - Elementnavn': Avrettingslag
+        'KON.40 - Materialtype': Uspesifisert
+        'KON.41 - Materialspesifikasjon': Ikke angitt
+        'KON.10 - Konstruksjonsinndeling': Underbygning
+
   - id: pile-head
-    name_pattern: '^Hode_Stålkjernepel$'
+    name_pattern: '^Pelehode$'
     property_sets:
       - KON_Peler
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Hode stålkjernepel
+        'BIM.05 - Elementnavn': Pelehode
       KON_Felles:
         'KON.11 - Konstruksjonsdel': Stålkjernepel
-        'KON.13 - Elementnavn': Hode stålkjernepel
+        'KON.13 - Elementnavn': Pelehode
         'KON.40 - Materialtype': Stål
         'KON.41 - Materialspesifikasjon': Ikke angitt
       KON_Peler:
-        'PEL.01 - Pel-ID': Hode stålkjernepel
+        'PEL.01 - Pel-ID': Pelehode
 
   - id: casing-pipe
     name_pattern: '^Foringsrør$'
@@ -139,15 +160,15 @@ rules:
         'KON.41 - Materialspesifikasjon': S355ML
 
   - id: grout
-    name_pattern: '^Omstøpningsmørtel$'
+    name_pattern: '^Utstøpning$'
     property_sets:
       - KON_Felles
     values:
       BIM_Tverrfaglig:
-        'BIM.05 - Elementnavn': Omstøpningsmørtel
+        'BIM.05 - Elementnavn': Utstøpning
       KON_Felles:
-        'KON.11 - Konstruksjonsdel': Omstøpningsmørtel
-        'KON.13 - Elementnavn': Omstøpningsmørtel
+        'KON.11 - Konstruksjonsdel': Utstøpning
+        'KON.13 - Elementnavn': Utstøpning
         'KON.40 - Materialtype': Mørtel
         'KON.41 - Materialspesifikasjon': Ikke angitt
 
